@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@theme {
+  --color-bg: #0a0a0f;
+  --color-bg2: #111118;
+  --color-surface: #16161e;
+  --color-border: rgba(255, 255, 255, 0.07);
+  --color-text: #f0eee4;
+  --color-muted: rgba(240, 238, 228, 0.45);
+  --color-accent: #7c6fff;
+  --color-accent2: #4fefb0;
+  --color-danger: #ff5c5c;
+  --color-yellow: #ffd966;
+  --color-orange: #ff9f43;
+  --color-soft: #a8a8b3;
+  --font-display: "Syne", sans-serif;
+  --font-body: "DM Sans", sans-serif;
+  --radius-card: 20px;
+  --radius-inner: 12px;
+  --radius-pill: 999px;
+}
+
+:root {
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --card: var(--color-surface);
+  --card-foreground: var(--color-text);
+  --popover: var(--color-bg2);
+  --popover-foreground: var(--color-text);
+  --primary: var(--color-accent);
+  --primary-foreground: #ffffff;
+  --secondary: rgba(255, 255, 255, 0.04);
+  --secondary-foreground: var(--color-text);
+  --muted: rgba(255, 255, 255, 0.04);
+  --muted-foreground: var(--color-muted);
+  --accent: rgba(124, 111, 255, 0.12);
+  --accent-foreground: var(--color-accent);
+  --destructive: var(--color-danger);
+  --border: var(--color-border);
+  --input: rgba(255, 255, 255, 0.06);
+  --ring: rgba(124, 111, 255, 0.35);
+  --radius: 1rem;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  background:
+    radial-gradient(circle at top left, rgba(124, 111, 255, 0.15), transparent 30%),
+    radial-gradient(circle at top right, rgba(79, 239, 176, 0.08), transparent 20%),
+    var(--color-bg);
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(124, 111, 255, 0.12), transparent 24%),
+    radial-gradient(circle at 84% 14%, rgba(79, 239, 176, 0.07), transparent 18%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 20%),
+    var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+}
+
+::selection {
+  background: rgba(124, 111, 255, 0.35);
+  color: #ffffff;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+  }
+}
+
+@layer utilities {
+  .surface-card {
+    @apply rounded-[20px] border border-border bg-surface shadow-[0_8px_40px_rgba(0,0,0,0.45)];
+  }
+
+  .surface-inner {
+    @apply rounded-[12px] border border-border bg-bg2/70;
+  }
+
+  .app-shell {
+    @apply min-h-screen bg-bg;
+  }
+}
