@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowLeftRight,
+  HandCoins,
   LayoutDashboard,
   PieChart,
   Target,
@@ -14,6 +15,7 @@ import { cn } from "@/lib/utils";
 const items = [
   { href: "/", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/transactions", icon: ArrowLeftRight, label: "Transactions" },
+  { href: "/inflow", icon: HandCoins, label: "True Inflow" },
   { href: "/budgets", icon: PieChart, label: "Budgets" },
   { href: "/goals", icon: Target, label: "Goals" },
 ];

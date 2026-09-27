@@ -52,6 +52,49 @@ A user can:
 
 Explicitly **not** in v1: automatic bank sync, mobile app, shared/household accounts, investments, bill pay.
 
+## 3a. Signature feature — **True Inflow**
+
+> "How much did I *actually* receive in the last 1, 2, 5 years?" — answered across every bank, without double-counting.
+
+Most people can't answer this. Bank statements overstate it, because moving ₦300k from GTBank to Kuda shows up as a ₦300k credit. With 3–5 accounts, the "total credits" figure can be 30–50% higher than real income. True Inflow fixes that.
+
+**Status:** first version built at `/inflow` on mock multi-bank statements (engine in `lib/inflow/`, UI in `components/inflow/`).
+
+### How it's calculated
+Start from every credit on every linked statement, then remove money that was already yours:
+
+| Excluded by default | How it's detected |
+|---|---|
+| **Transfers between your own accounts** | Credit matched to a same-amount debit on *another linked account* within 2 days (each debit used once). Always runs across **all** accounts, even when the view is filtered to one bank, so hiding a bank never turns its transfers into fake income. |
+| **From your own unlinked accounts** | Your name is the sender (`TRF FROM CLINTON K/ACCESS BANK`) but no matching debit, which means a bank you haven't added. Prompts: "Link Access Bank". |
+| **Savings & ajo payouts** | PiggyVest / Cowrywise withdrawals, ajo/esusu payouts: your own money returning. |
+| **Reversals** | Failed transfers bouncing back. |
+| **Refunds** | Merchant refunds (Jumia etc.). |
+| **Loan disbursements** | FairMoney, Carbon etc. Borrowed, not earned. |
+
+Everything is reversible: each group has a "count this as income" switch, and each payment has a "Count it" / "Counted" toggle. Manual decisions win over rules.
+
+### What the user sees
+- **Span picker:** 1Y · 2Y · 3Y · 5Y · All, plus any calendar year (tap a row in Year by year). Monthly bars up to 24 months, quarterly beyond.
+- **Hero number:** "You actually received ₦15.7M", with change vs the previous period (or the same months last year for a calendar year).
+- **Source split:** Salary / Business & freelance / Family & gifts / Interest & returns / Other.
+- **How we got there:** gross credits, minus each exclusion, equals True Inflow, so the number is auditable.
+- **Chart:** stacked bars by source (click the legend to hide a source) or a running total against the previous period.
+- **Where it landed:** True Inflow per bank.
+- **Who paid you:** top payers with share of income.
+- **Year by year:** totals, nominal growth and **real growth after inflation**. The partial current year is compared like-for-like (Jan–Sep vs Jan–Sep).
+- **Export:** CSV of every counted credit in the span.
+
+### Next ideas for True Inflow
+1. **Proof-of-income PDF:** a clean, branded income statement for landlords, visa applications and loan officers. It lists sources and months, is signed with a verification link, and is a strong paid feature.
+2. **Tax helper:** annual taxable income estimate by source (salary vs business vs investment), ready for self-assessment.
+3. **Income stability score:** how steady monthly inflow is (e.g. coefficient of variation) and months-of-runway, useful for freelancers.
+4. **USD-aware:** domiciliary/Grey/Payoneer credits converted at the rate on the day received, with a toggle to show the total in USD.
+5. **Payer insights:** "Lagos Creative Hub paid you 4× this year, avg 22 days after invoice". Late-payer alerts.
+6. **Goals from income:** "You received ₦15.7M, saved ₦2.1M (13%)". Links True Inflow to savings rate.
+7. **Smarter matching:** fuzzy amounts for transfer fees (₦10.75, ₦26.88, ₦53.75 NIP charges), multi-leg transfers (A→B→C same day), and learning the user's aliases.
+8. **Share card:** an image-safe year-in-review ("Your 2025 in money") without exact amounts, for virality.
+
 ## 4. Architecture
 
 | Concern | Choice | Why |
@@ -104,7 +147,9 @@ fx_rates         date, base, quote, rate
 - [ ] Goals CRUD + contributions
 - [ ] Empty states and onboarding (create first account → add first transaction)
 
-### Phase 2 — Getting data in (the differentiator, ≈2 weeks)
+### Phase 2 — Getting data in + True Inflow on real data (the differentiator, ≈3 weeks)
+- [ ] Move True Inflow engine (`lib/inflow/`) onto DB transactions; persist per-line overrides and counted groups
+- [ ] Add unit tests for transfer matching and exclusion rules using real (anonymised) statement fixtures
 - [ ] CSV import with column mapping + preview + dedupe (start with 2–3 common bank statement formats)
 - [ ] **Bank alert parser**: paste one or many SMS/email alerts → parsed preview → confirm. Parser per bank, fixtures-driven tests
 - [ ] Categorisation rules engine; "always categorise X as Y" from any edit

@@ -9,6 +9,7 @@ const titles: Record<string, string> = {
   "/transactions": "Transactions",
   "/budgets": "Budgets",
   "/goals": "Savings Goals",
+  "/inflow": "True Inflow",
 };
 
 export function Topbar({ pathname }: { pathname: string }) {
