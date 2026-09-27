@@ -25,3 +25,12 @@ export function formatPercent(ratio: number, { signed = false } = {}) {
 function trim(value: number) {
   return value >= 100 ? value.toFixed(0) : value >= 10 ? value.toFixed(1) : value.toFixed(2);
 }
+
+/** Short, trailing-zero-free labels for chart axes: ₦600k, ₦2.4M, ₦12M. */
+export function formatNairaAxis(amount: number) {
+  const abs = Math.abs(amount);
+  const strip = (v: number) => String(Number(v.toFixed(1)));
+  if (abs >= 1_000_000) return `₦${strip(amount / 1_000_000)}M`;
+  if (abs >= 1_000) return `₦${strip(amount / 1_000)}k`;
+  return `₦${Math.round(amount)}`;
+}

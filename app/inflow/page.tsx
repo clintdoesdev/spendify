@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { InflowPageClient } from "@/components/inflow/InflowPageClient";
+import { TrueInflowPage } from "@/components/true-inflow/TrueInflowPage";
 
 export const metadata: Metadata = {
   title: "True Inflow · spendify",
@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function InflowPage() {
-  return <InflowPageClient />;
+  return <TrueInflowPage />;
 }

@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Syne } from "next/font/google";
 
-import { AppShell } from "@/components/dashboard/AppShell";
-
 import "./globals.css";
 
 const syne = Syne({
@@ -29,9 +27,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${syne.variable} ${dmSans.variable} dark h-full antialiased`}>
-      <body className="min-h-full">
-        <AppShell>{children}</AppShell>
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }

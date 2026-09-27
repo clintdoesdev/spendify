@@ -58,7 +58,7 @@ Explicitly **not** in v1: automatic bank sync, mobile app, shared/household acco
 
 Most people can't answer this. Bank statements overstate it, because moving ₦300k from GTBank to Kuda shows up as a ₦300k credit. With 3–5 accounts, the "total credits" figure can be 30–50% higher than real income. True Inflow fixes that.
 
-**Status:** first version built at `/inflow` on mock multi-bank statements (engine in `lib/inflow/`, UI in `components/inflow/`).
+**Status:** built as a standalone light page at `/inflow`, running on mock multi-bank statements. The engine is in `lib/inflow/` and the UI in `components/true-inflow/`. The page follows the new design system in `docs/DESIGN.md`.
 
 ### How it's calculated
 Start from every credit on every linked statement, then remove money that was already yours:
@@ -182,6 +182,9 @@ fx_rates         date, base, quote, rate
   2. Supabase vs self-managed Postgres + Auth.js?
   3. Monetisation: free core + paid (auto-import, AI categorisation, reports) at ~₦2–3k/month?
   4. Web-only/PWA for v1, or is a native app a must?
+
+## 7a. Design direction
+The old dark dashboard is being replaced by a light fintech system: Inter, one Signal Violet accent, pill controls and Cloud cards (see `docs/DESIGN.md`). True Inflow is the first page on it. The next job is to move Overview, Transactions, Budgets and Goals out of `app/(dashboard)` onto the same system.
 
 ## 8. Suggested next step
 Start **Phase 0**: money helper + data layer + computed stats. It's small, it removes the biggest "fake" parts of the current UI, and it sets up the DB swap in Phase 1 without touching components twice.
