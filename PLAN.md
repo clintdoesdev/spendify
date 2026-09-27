@@ -4,14 +4,14 @@
 
 ## 1. Where we are today
 
-A polished **frontend-only** Next.js 15 dashboard (Tailwind 4, shadcn/base-ui, Recharts):
+A working Next.js 15 app on a light design system (`docs/DESIGN.md`), running in two modes:
 
-- Pages: Dashboard (`/`), Transactions, Budgets, Goals
-- All data comes from `lib/mockData.ts`; summary stats are **hard-coded strings** (e.g. `"₦2,847,500"`), not computed
-- Currency is Naira (NGN) throughout, formatted ad hoc in several components
-- No persistence, auth, API, tests, or data entry of any kind
+- **Demo:** no env vars, five years of sample statements across four banks, nothing saved.
+- **Live:** Supabase email login, Postgres (Drizzle) with row level security, your own imported statements.
 
-Good news: the UI and the data types (`Transaction`, `Budget`, `Goal`) are a solid skeleton. The job now is to make it *real* and give it a reason to exist next to every other budgeting app.
+Pages: Overview, Transactions, True Inflow, Budgets, Goals, Import, Bank accounts, Sign in. Every number
+is computed from statement lines. Tests cover the True Inflow engine, spending analysis, CSV and alert
+parsers, and the database layer against real Postgres.
 
 ## 2. The idea — sharpened
 
@@ -132,27 +132,33 @@ fx_rates         date, base, quote, rate
 ## 5. Roadmap
 
 ### Phase 0 — Foundations (≈1 week)
-- [ ] Replace README with real project docs; add `.env.example`
-- [ ] Add Vitest, Prettier, CI (lint + typecheck + test + build on PRs)
-- [ ] `lib/money.ts`: single `formatMoney(minor, currency)` helper; replace all ad-hoc `₦` formatting
-- [ ] Refactor pages to read through a data layer (`lib/data/*.ts`) — start by wrapping mock data, so swapping to DB later touches one place
-- [ ] Compute summary stats/budget totals from transactions instead of hard-coded strings
+- [x] Replace README with real project docs; add `.env.example`
+- [x] Vitest
+- [ ] Prettier, CI (lint + typecheck + test + build on PRs)
+- [x] `lib/money.ts` naira formatting helpers used everywhere (multi-currency still to do)
+- [x] Refactor pages to read through a data layer (`lib/data/*.ts`) — start by wrapping mock data, so swapping to DB later touches one place
+- [x] Compute summary stats/budget totals from transactions instead of hard-coded strings
 
 ### Phase 1 — Real data (≈2 weeks)
-- [ ] Supabase project, Drizzle schema + migrations, seed script (port `mockData.ts` into seed)
-- [ ] Auth: sign-in page, protected routes via middleware, RLS policies
-- [ ] Accounts CRUD
-- [ ] Transactions: add/edit/delete form (dialog), filters (date range, account, category, search), pagination server-side
-- [ ] Budgets CRUD + monthly period selector
-- [ ] Goals CRUD + contributions
-- [ ] Empty states and onboarding (create first account → add first transaction)
+- [x] Drizzle schema + migrations for Supabase Postgres (demo data stays in code, no seed needed)
+- [x] Auth: sign-in page, protected routes via middleware, RLS policies
+- [x] Accounts CRUD
+- [x] Transactions: filters (account, direction, category, month, search), export
+- [ ] Manual add/edit of a transaction; server-side pagination for very large histories
+- [x] Budgets CRUD + monthly period selector
+- [x] Goals CRUD + contributions
+- [x] Empty states and onboarding (create first account → add first transaction)
 
 ### Phase 2 — Getting data in + True Inflow on real data (the differentiator, ≈3 weeks)
-- [ ] Move True Inflow engine (`lib/inflow/`) onto DB transactions; persist per-line overrides and counted groups
-- [ ] Add unit tests for transfer matching and exclusion rules using real (anonymised) statement fixtures
-- [ ] CSV import with column mapping + preview + dedupe (start with 2–3 common bank statement formats)
-- [ ] **Bank alert parser**: paste one or many SMS/email alerts → parsed preview → confirm. Parser per bank, fixtures-driven tests
-- [ ] Categorisation rules engine; "always categorise X as Y" from any edit
+- [x] Move True Inflow engine (`lib/inflow/`) onto DB transactions; persist per-line overrides and counted groups
+- [x] Unit tests for transfer matching and exclusion rules
+- [ ] Add real (anonymised) statement fixtures from each major bank
+- [x] CSV import with automatic header/column detection, preview and dedupe
+- [ ] Excel (.xlsx) and PDF statements; manual column mapping when detection fails
+- [x] **Bank alert parser**: paste SMS/email alerts → preview → confirm (generic parser with tests)
+- [ ] Dedupe an alert against the same transaction later imported from a statement
+- [x] Rule-based spending categories
+- [ ] "Always categorise X as Y" user rules from any edit
 - [ ] LLM fallback categoriser for uncategorised rows (batched, cached per merchant string)
 
 ### Phase 3 — Insight (≈2 weeks)
@@ -184,7 +190,10 @@ fx_rates         date, base, quote, rate
   4. Web-only/PWA for v1, or is a native app a must?
 
 ## 7a. Design direction
-The old dark dashboard is being replaced by a light fintech system: Inter, one Signal Violet accent, pill controls and Cloud cards (see `docs/DESIGN.md`). True Inflow is the first page on it. The next job is to move Overview, Transactions, Budgets and Goals out of `app/(dashboard)` onto the same system.
+Light fintech system: Inter, one Signal Violet accent, pill controls and Cloud cards. Every page uses it (see `docs/DESIGN.md`).
 
 ## 8. Suggested next step
-Start **Phase 0**: money helper + data layer + computed stats. It's small, it removes the biggest "fake" parts of the current UI, and it sets up the DB swap in Phase 1 without touching components twice.
+1. Connect a real Supabase project and import your own statements from each bank. Real files will show
+   which formats the CSV and alert parsers still miss.
+2. Add CI (lint, typecheck, tests with a Postgres service, build) so every PR is checked.
+3. Proof-of-income PDF from True Inflow.

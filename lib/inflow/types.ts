@@ -3,7 +3,6 @@ export type BankAccount = {
   institution: string;
   label: string;
   last4: string;
-  openedOn: string;
 };
 
 export type StatementLine = {

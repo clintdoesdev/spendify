@@ -6,15 +6,14 @@ export const AS_OF = "2026-09-27";
 export const OWN_NAMES = ["CLINTON K"];
 
 export const bankAccounts: BankAccount[] = [
-  { id: "gtb", institution: "GTBank", label: "Salary", last4: "4821", openedOn: "2019-03-01" },
-  { id: "kuda", institution: "Kuda", label: "Spend & Save", last4: "0193", openedOn: "2020-06-01" },
-  { id: "opay", institution: "OPay", label: "Wallet", last4: "7750", openedOn: "2021-01-01" },
+  { id: "gtb", institution: "GTBank", label: "Salary", last4: "4821" },
+  { id: "kuda", institution: "Kuda", label: "Spend & Save", last4: "0193" },
+  { id: "opay", institution: "OPay", label: "Wallet", last4: "7750" },
   {
     id: "moniepoint",
     institution: "Moniepoint",
     label: "Business",
     last4: "3302",
-    openedOn: "2023-06-01",
   },
 ];
 
@@ -232,6 +231,38 @@ function generate(): StatementLine[] {
         });
       }
 
+      // Everyday spending, scaled with income.
+      const scale = salary / 320_000;
+      const spend = (accountId: string, d: number, amount: number, narration: string, counterparty: string) =>
+        push({ accountId, date: day(d), amount: roundTo(amount * scale, 50), type: "debit", narration, counterparty });
+
+      spend("kuda", 2, between(28_000, 48_000), "POS PURCHASE SHOPRITE LEKKI", "Shoprite");
+      spend("kuda", 16, between(20_000, 40_000), "POS PURCHASE SPAR ADMIRALTY", "Spar");
+      for (let i = 0; i < 3 + Math.floor(rand() * 4); i++) {
+        spend("opay", 1 + Math.floor(rand() * 27), between(3_500, 9_500), "CHOWDECK ORDER", "Chowdeck");
+      }
+      for (let i = 0; i < 4 + Math.floor(rand() * 5); i++) {
+        spend("opay", 1 + Math.floor(rand() * 27), between(2_000, 6_500), "BOLT RIDE LAGOS", "Bolt");
+      }
+      spend("opay", 5, between(8_000, 15_000), "MTN DATA BUNDLE 25GB", "MTN");
+      spend("opay", 19, between(1_500, 4_000), "AIRTEL AIRTIME TOPUP", "Airtel");
+      spend("kuda", 6, between(18_000, 26_000), "IKEDC PREPAID TOKEN", "Ikeja Electric");
+      spend("kuda", 8, 12_500, "DSTV COMPACT SUBSCRIPTION", "MultiChoice");
+      spend("kuda", 12, 4_400, "NETFLIX.COM SUBSCRIPTION", "Netflix");
+      spend("gtb", 27, between(40_000, 60_000), "NIP TRF TO NGOZI O UPKEEP", "Mum");
+      spend("gtb", 27, between(30_000, 70_000), "PIGGYVEST TARGET SAVINGS", "PiggyVest");
+      spend("gtb", 28, between(25_000, 45_000), "TITHE ST AGNES CHURCH", "St Agnes Church");
+      if (rand() > 0.5) spend("kuda", 14, between(15_000, 90_000), "JUMIA ONLINE PURCHASE", "Jumia");
+      if (rand() > 0.6) spend("opay", 21, between(5_000, 22_000), "MEDPLUS PHARMACY", "MedPlus");
+      if (rand() > 0.5) spend("gtb", 11, between(10_000, 30_000), "ATM CASH WITHDRAWAL", "ATM");
+      push({ accountId: "gtb", date: day(28), amount: 150, type: "debit", narration: "SMS ALERT CHARGES", counterparty: "GTBank" });
+      if (m === 3) {
+        // Rent in Lagos is paid yearly, up front.
+        const rent = roundTo(900_000 * (1 + (year - 2021) * 0.18), 10_000);
+        push({ accountId: "gtb", date: day(1), amount: rent, type: "debit", narration: "RENT PAYMENT LANDLORD YABA", counterparty: "Landlord" });
+      }
+      if (m === 9) push({ accountId: "opay", date: day(1), amount: 25_000, type: "debit", narration: "AJO CONTRIBUTION OFFICE ESUSU", counterparty: "Office Esusu Group" });
+
       // Failed transfers that bounce back.
       if (rand() > 0.72) {
         const amount = roundTo(between(8_000, 90_000), 500);
@@ -288,6 +319,9 @@ function generate(): StatementLine[] {
     narration: "FAIRMONEY LOAN DISBURSEMENT",
     counterparty: "FairMoney MFB",
   });
+  for (const [date, amount] of [["2022-09-14", 55_000], ["2022-10-14", 55_000], ["2022-11-14", 55_000], ["2024-12-02", 145_000], ["2025-01-02", 145_000], ["2025-02-02", 145_000]] as const) {
+    push({ accountId: "opay", date, amount, type: "debit", narration: "LOAN REPAYMENT", counterparty: "Lender" });
+  }
   push({
     accountId: "gtb",
     date: "2024-11-02",
@@ -301,16 +335,3 @@ function generate(): StatementLine[] {
 }
 
 export const statementLines = generate();
-
-/**
- * Illustrative year-on-year headline inflation, used to show "real" growth.
- * Replace with an official CPI feed before shipping.
- */
-export const inflationByYear: Record<number, number> = {
-  2021: 0.17,
-  2022: 0.188,
-  2023: 0.247,
-  2024: 0.33,
-  2025: 0.21,
-  2026: 0.16,
-};

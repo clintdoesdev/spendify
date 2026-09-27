@@ -73,7 +73,7 @@ export function InflowBars({
     <div className="h-[300px] w-full sm:h-[360px]">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
         {mode === "bars" ? (
-          <BarChart data={rows} barCategoryGap={rows.length > 16 ? "16%" : "26%"} margin={{ top: 8, right: 4 }}>
+          <BarChart data={rows} barCategoryGap={rows.length > 16 ? "16%" : "26%"} maxBarSize={56} margin={{ top: 8, right: 4 }}>
             {axes}
             <Tooltip
               cursor={{ fill: "rgba(31,31,31,0.04)" }}

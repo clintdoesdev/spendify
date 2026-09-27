@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, ChevronDown, Link2 } from "lucide-react";
 
@@ -16,7 +17,7 @@ import { formatNaira, formatNairaCompact, formatPercent } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 import { reasonMeta, sourceLabel } from "./meta";
-import { BankAvatar, Card, CardTitle, Eyebrow, PillButton, Switch } from "./ui";
+import { BankAvatar, Card, CardTitle, Eyebrow, PillButton, Switch } from "@/components/ui/kit";
 
 /** Inverted Inkstone panel: gross credits, minus what was already yours, equals True Inflow. */
 export function Reconciliation({
@@ -382,12 +383,22 @@ export function ReviewList({
                   <div className="mb-3 flex flex-col gap-3 rounded-2xl bg-violet-wash p-4 sm:flex-row sm:items-center">
                     <Link2 className="size-5 shrink-0 text-violet" />
                     <p className="flex-1 text-[15px] text-ink">
-                      These came from <span className="font-semibold">Access Bank</span> in your name. Link it
-                      and we&apos;ll match both sides automatically.
+                      {unlinkedBanks(items).length > 0 ? (
+                        <>
+                          These came from{" "}
+                          <span className="font-semibold">{unlinkedBanks(items).join(", ")}</span> in your name.
+                        </>
+                      ) : (
+                        "These came from a bank you haven't added, in your name."
+                      )}{" "}
+                      Add it and import its statement so we can match both sides.
                     </p>
-                    <PillButton variant="ghost" className="h-10 px-5">
-                      Link Access Bank <ArrowRight className="size-4" />
-                    </PillButton>
+                    <Link
+                      href="/accounts"
+                      className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-violet px-5 text-[15px] font-medium text-violet hover:bg-violet-wash"
+                    >
+                      Add bank <ArrowRight className="size-4" />
+                    </Link>
                   </div>
                 )}
                 <ul className="divide-y divide-hairline rounded-2xl bg-white">
@@ -448,6 +459,18 @@ export function ReviewList({
       })}
     </div>
   );
+}
+
+/** Bank names from narrations like "NIP TRF FROM ADA OBI/ACCESS BANK". */
+function unlinkedBanks(items: ClassifiedCredit[]) {
+  const names = new Set<string>();
+  for (const c of items) {
+    const tail = c.line.narration.split("/").pop()?.trim();
+    if (tail && tail !== c.line.narration.trim() && tail.length <= 30) {
+      names.add(tail.toLowerCase().replace(/\b\w/g, (ch) => ch.toUpperCase()));
+    }
+  }
+  return [...names].slice(0, 3);
 }
 
 export function formatDate(iso: string) {

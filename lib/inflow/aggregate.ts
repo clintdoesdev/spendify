@@ -1,4 +1,3 @@
-import { AS_OF } from "./mockStatements";
 import {
   EXCLUSION_REASONS,
   INFLOW_SOURCES,
@@ -54,20 +53,19 @@ const toIndex = (ym: string) => Number(ym.slice(0, 4)) * 12 + Number(ym.slice(5,
 const fromIndex = (i: number) => `${Math.floor(i / 12)}-${String((i % 12) + 1).padStart(2, "0")}`;
 const monthLabel = (i: number) => `${MONTH_NAMES[i % 12]} ${Math.floor(i / 12)}`;
 
-export const AS_OF_MONTH = toIndex(AS_OF.slice(0, 7));
-
-export function resolveSpan(span: Span, earliestMonth: string) {
-  const first = toIndex(earliestMonth);
+export function resolveSpan(span: Span, earliestMonth: string, asOf: string) {
+  const asOfMonth = toIndex(asOf.slice(0, 7));
+  const first = Math.min(toIndex(earliestMonth), asOfMonth);
   let start: number;
-  let end = AS_OF_MONTH;
+  let end = asOfMonth;
   let label: string;
 
   if (span.kind === "trailing") {
-    start = Math.max(first, AS_OF_MONTH - span.years * 12 + 1);
+    start = Math.max(first, asOfMonth - span.years * 12 + 1);
     label = span.years === 1 ? "Last 12 months" : `Last ${span.years} years`;
   } else if (span.kind === "year") {
     start = Math.max(first, span.year * 12);
-    end = Math.min(AS_OF_MONTH, span.year * 12 + 11);
+    end = Math.min(asOfMonth, span.year * 12 + 11);
     label = end < span.year * 12 + 11 ? `${span.year} so far` : String(span.year);
   } else {
     start = first;
@@ -84,9 +82,10 @@ export function summarize(
   credits: ClassifiedCredit[],
   accounts: BankAccount[],
   span: Span,
-  earliestMonth: string
+  earliestMonth: string,
+  asOf: string
 ): InflowSummary {
-  const { start, end, label } = resolveSpan(span, earliestMonth);
+  const { start, end, label } = resolveSpan(span, earliestMonth, asOf);
   const monthCount = end - start + 1;
   const granularity = monthCount > 24 ? "quarter" : "month";
   const bucketOf = (m: number) => (granularity === "month" ? m - start : Math.floor((m - start) / 3));
@@ -209,11 +208,13 @@ export function summarize(
 export function yearRows(
   credits: ClassifiedCredit[],
   earliestMonth: string,
-  inflation: Record<number, number>
+  inflation: Record<number, number>,
+  asOf: string
 ): YearRow[] {
   const firstYear = Number(earliestMonth.slice(0, 4));
-  const lastYear = Math.floor(AS_OF_MONTH / 12);
-  const lastMonthOfAsOfYear = AS_OF_MONTH % 12;
+  const asOfMonth = toIndex(asOf.slice(0, 7));
+  const lastYear = Math.floor(asOfMonth / 12);
+  const lastMonthOfAsOfYear = asOfMonth % 12;
   const byMonth = new Map<number, number>();
 
   for (const credit of credits) {

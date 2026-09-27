@@ -1,7 +1,7 @@
 # Spendify design system (light)
 
-The new UI direction, first used on the standalone **True Inflow** page (`/inflow`). The rest of the app
-(still on the old dark theme under `app/(dashboard)`) should move onto this system page by page.
+The whole app uses this system. Reusable pieces live in `components/ui/kit.tsx` (Container, Card,
+PageHeading, Segmented, PillButton, TextField, SelectField, Notice, EmptyState, BankAvatar, …).
 
 It is built from three references. **Shares** is the base; the other two contribute specific pieces:
 
@@ -13,7 +13,7 @@ It is built from three references. **Shares** is the base; the other two contrib
 
 ## Tokens
 
-Defined in `app/globals.css` under `@theme`, and applied to any page wrapped in `.ui-light`.
+Defined in `app/globals.css` under `@theme`.
 
 | Token | Value | Use |
 |---|---|---|
@@ -26,7 +26,8 @@ Defined in `app/globals.css` under `@theme`, and applied to any page wrapped in 
 | `porcelain` | `#ffffff` | Page canvas |
 | `violet` / `violet-deep` | `#594ff4` / `#4a40e0` | The only accent: primary buttons, active tabs, focused data (hover) |
 | `violet-wash` | `#f5f3ff` | Soft callouts and tags |
-| `gain` / `gain-wash` | `#0b7a61` / `#e3f5ef` | Positive change |
+| `gain` / `gain-wash` | `#0b7a61` / `#e3f5ef` | Positive change, money in |
+| `warn` / `warn-wash` | `#8a5a00` / `#fdf3dc` | Budget running ahead of pace, soft warnings |
 | `loss` / `loss-wash` | `#cb272f` / `#fbe9ea` | Negative change |
 
 ## Type
