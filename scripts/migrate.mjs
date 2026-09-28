@@ -40,6 +40,17 @@ if (!url) {
   process.exit(0);
 }
 
+// Railway's private hostname only resolves inside Railway. From Vercel (or anywhere else) it
+// can never work, so fail at once with the fix instead of retrying for a minute.
+if (/\.railway\.internal\b/.test(url) && !process.env.RAILWAY_ENVIRONMENT_NAME) {
+  console.error(
+    "[migrate] FAILED: DATABASE_URL points at Railway's private network (*.railway.internal), which is only\n" +
+      "[migrate] reachable from services running on Railway. Use the public URL instead: in Railway open\n" +
+      "[migrate] Postgres → Variables, copy DATABASE_PUBLIC_URL, and set it as DATABASE_URL here."
+  );
+  process.exit(1);
+}
+
 const log = (msg) => console.log(`[migrate] ${msg}`);
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 

@@ -50,6 +50,21 @@ no third-party auth service to set up.
    created on the first deploy and kept up to date after that.
 5. **Settings → Networking → Generate Domain** to get a public URL, then open it and create your account.
 
+## Deploy on Vercel
+
+1. Import the repo in Vercel. It runs `npm run vercel-build`, which checks the schema, **migrates
+   the database**, then builds, so every deployment brings the database up to date first.
+2. Create a Postgres database (Railway, Neon, Supabase Postgres, or Vercel's Postgres integration)
+   and set `DATABASE_URL` in **Project → Settings → Environment Variables** for Production and
+   Preview.
+   - From Railway, use the **public** URL: Postgres service → Variables → `DATABASE_PUBLIC_URL`.
+     The private `postgres.railway.internal` address only works for apps running on Railway, and
+     the build stops with a message saying so.
+3. Redeploy. `/api/health` should show `"ok": true`.
+
+If the database is down, pages still load and sign-in shows "We can't reach the database right
+now" instead of the site crashing.
+
 ### Database migrations
 
 Nothing to run by hand. On every deploy:

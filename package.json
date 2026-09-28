@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "node scripts/check-migrations.mjs && next build",
+    "vercel-build": "node scripts/check-migrations.mjs && node scripts/migrate.mjs && next build",
     "start": "node scripts/migrate.mjs && next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",

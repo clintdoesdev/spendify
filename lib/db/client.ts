@@ -8,8 +8,9 @@ import * as schema from "./schema";
 export type Database = ReturnType<typeof createDb>;
 
 export function createDb(url: string) {
-  // prepare: false keeps it compatible with connection poolers such as PgBouncer.
-  const client = postgres(url, { prepare: false, max: 5 });
+  // prepare: false keeps it compatible with connection poolers such as PgBouncer. Short connect
+  // and idle timeouts suit serverless hosts (Vercel), where instances freeze between requests.
+  const client = postgres(url, { prepare: false, max: 5, connect_timeout: 10, idle_timeout: 20 });
   return drizzle(client, { schema });
 }
 

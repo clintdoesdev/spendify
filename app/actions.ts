@@ -185,6 +185,8 @@ function safeNext(next: FormDataEntryValue | null) {
   return value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : "/overview";
 }
 
+const DB_DOWN = "We can't reach the database right now. Please try again in a minute.";
+
 async function clientIp() {
   return (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 }
@@ -199,14 +201,20 @@ export async function signUpAction(_: AuthState, form: FormData): Promise<AuthSt
   if (isThrottled(ipKey, 10)) return { error: "Too many sign-ups from this network. Try again in 15 minutes." };
   recordFailure(ipKey);
 
-  const userId = await createUser(getDb(), {
-    email: parsed.data.email,
-    name,
-    passwordHash: await hashPassword(parsed.data.password),
-  });
+  let userId: string | null;
+  try {
+    userId = await createUser(getDb(), {
+      email: parsed.data.email,
+      name,
+      passwordHash: await hashPassword(parsed.data.password),
+    });
+    if (userId) await startSession(userId);
+  } catch (error) {
+    console.error("Sign-up failed:", error);
+    return { error: DB_DOWN, email: parsed.data.email, name };
+  }
   if (!userId) return { error: "An account with this email already exists. Sign in instead.", email: parsed.data.email, name };
 
-  await startSession(userId);
   redirect(safeNext(form.get("next")));
 }
 
@@ -219,7 +227,13 @@ export async function signInAction(_: AuthState, form: FormData): Promise<AuthSt
     return { error: "Too many attempts. Wait 15 minutes and try again.", email };
   }
 
-  const user = email ? await findUserByEmail(getDb(), email) : null;
+  let user: Awaited<ReturnType<typeof findUserByEmail>> | null;
+  try {
+    user = email ? await findUserByEmail(getDb(), email) : null;
+  } catch (error) {
+    console.error("Sign-in lookup failed:", error);
+    return { error: DB_DOWN, email };
+  }
   // Always run a hash comparison so response time doesn't reveal whether the email exists.
   const valid = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !valid) {
@@ -228,7 +242,12 @@ export async function signInAction(_: AuthState, form: FormData): Promise<AuthSt
   }
 
   keys.forEach(clearFailures);
-  await startSession(user.id);
+  try {
+    await startSession(user.id);
+  } catch (error) {
+    console.error("Starting a session failed:", error);
+    return { error: DB_DOWN, email };
+  }
   redirect(safeNext(form.get("next")));
 }
 
@@ -246,6 +265,6 @@ export async function deleteMyAccountAction(confirmEmail: string): Promise<Actio
 }
 
 export async function signOutAction() {
-  if (isLiveMode()) await endSession();
+  if (isLiveMode()) await endSession().catch((error) => console.error("Sign-out failed:", error));
   redirect("/login");
 }

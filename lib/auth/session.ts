@@ -18,7 +18,15 @@ export async function isDemoVisitor() {
 /** The signed-in user for this request, or null. */
 export const getCurrentUser = cache(async () => {
   const token = (await cookies()).get(COOKIE)?.value;
-  return token ? findSessionUser(getDb(), token) : null;
+  if (!token) return null;
+  try {
+    return await findSessionUser(getDb(), token);
+  } catch (error) {
+    // Database down or not migrated: treat as signed out so public pages still render.
+    // Signing in then reports the problem instead of the whole site crashing.
+    console.error("Session lookup failed:", error);
+    return null;
+  }
 });
 
 export async function startSession(userId: string) {
