@@ -11,6 +11,8 @@ export type Viewer = { email: string; initials: string };
 /** Everything a page needs about the signed-in user (or the demo user). Amounts in naira. */
 export type Workspace = {
   mode: "demo" | "live";
+  /** Demo only: a database is connected, so the visitor can create a real account. */
+  canSignUp: boolean;
   viewer: Viewer;
   /** "Today" for all calculations, YYYY-MM-DD. Fixed in demo mode so sample data stays current. */
   asOf: string;

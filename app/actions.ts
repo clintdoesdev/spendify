@@ -6,8 +6,8 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { DUMMY_HASH, hashPassword, verifyPassword } from "@/lib/auth/password";
-import { endSession, startSession } from "@/lib/auth/session";
-import { createUser, findUserByEmail } from "@/lib/auth/store";
+import { endSession, getCurrentUser, startSession } from "@/lib/auth/session";
+import { createUser, deleteUser, findUserByEmail } from "@/lib/auth/store";
 import { clearFailures, isThrottled, recordFailure } from "@/lib/auth/throttle";
 import * as repo from "@/lib/data/repo";
 import { DemoModeError, requireUserId } from "@/lib/data/workspace";
@@ -182,7 +182,7 @@ const credentials = z.object({
 
 function safeNext(next: FormDataEntryValue | null) {
   const value = typeof next === "string" ? next : "";
-  return value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : "/";
+  return value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : "/overview";
 }
 
 async function clientIp() {
@@ -230,6 +230,19 @@ export async function signInAction(_: AuthState, form: FormData): Promise<AuthSt
   keys.forEach(clearFailures);
   await startSession(user.id);
   redirect(safeNext(form.get("next")));
+}
+
+/** Permanently deletes the signed-in user and everything they own. */
+export async function deleteMyAccountAction(confirmEmail: string): Promise<ActionResult> {
+  if (!isLiveMode()) return { ok: false, error: "Demo mode: there's no account to delete." };
+  const user = await getCurrentUser();
+  if (!user) return { ok: false, error: "This is sample data. There's no account to delete." };
+  if (confirmEmail.trim().toLowerCase() !== user.email.toLowerCase()) {
+    return { ok: false, error: "Type your email exactly to confirm." };
+  }
+  await deleteUser(getDb(), user.id);
+  await endSession();
+  redirect("/?deleted=1");
 }
 
 export async function signOutAction() {

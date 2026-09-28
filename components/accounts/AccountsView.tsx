@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { Trash2, X } from "lucide-react";
 
-import { createAccountAction, deleteAccountAction, savePrefsAction } from "@/app/actions";
+import { createAccountAction, deleteAccountAction, deleteMyAccountAction, savePrefsAction } from "@/app/actions";
 import { BankAvatar, Card, CardTitle, Container, Notice, PageHeading, PillButton, TextField } from "@/components/ui/kit";
 import type { Workspace } from "@/lib/data/types";
 import { monthLabel } from "@/lib/finance/analyze";
@@ -144,6 +144,7 @@ export function AccountsView({ workspace }: { workspace: Workspace }) {
         <div className="space-y-4">
           <AddAccount onAdd={addAccount} disabled={pending} />
           <OwnNames names={names} onChange={saveNames} />
+          {mode === "live" && <DeleteAccount email={workspace.viewer.email} />}
         </div>
       </div>
     </Container>
@@ -244,6 +245,49 @@ function OwnNames({ names, onChange }: { names: string[]; onChange: (names: stri
           Add
         </PillButton>
       </form>
+    </Card>
+  );
+}
+
+function DeleteAccount({ email }: { email: string }) {
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <Card as="div">
+      <p className="text-[18px] font-bold tracking-[-0.01em]">Delete your Spendify account</p>
+      <p className="mt-2 text-[15px] leading-relaxed text-ink-soft">
+        Permanently removes your login, banks, transactions, budgets and goals. This can&apos;t be undone.
+      </p>
+      {!open ? (
+        <PillButton variant="quiet" className="mt-4 text-loss" onClick={() => setOpen(true)}>
+          Delete account…
+        </PillButton>
+      ) : (
+        <form
+          className="mt-4 space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            startTransition(async () => {
+              const result = await deleteMyAccountAction(value);
+              if (result && !result.ok) setError(result.error);
+            });
+          }}
+        >
+          {error && <Notice tone="error">{error}</Notice>}
+          <TextField label={`Type ${email} to confirm`} value={value} onChange={(e) => setValue(e.target.value)} autoComplete="off" />
+          <div className="flex gap-2">
+            <PillButton type="submit" className="bg-loss hover:bg-loss/90" disabled={pending || value.trim().toLowerCase() !== email.toLowerCase()}>
+              {pending ? "Deleting…" : "Delete everything"}
+            </PillButton>
+            <PillButton variant="quiet" onClick={() => setOpen(false)}>
+              Cancel
+            </PillButton>
+          </div>
+        </form>
+      )}
     </Card>
   );
 }

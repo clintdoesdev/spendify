@@ -7,9 +7,11 @@ import {
 
 import type { Workspace } from "./types";
 
-export function demoWorkspace(): Workspace {
+/** Sample data. `canSignUp` is true when a database is connected, so visitors can make a real account. */
+export function demoWorkspace({ canSignUp }: { canSignUp: boolean }): Workspace {
   return {
     mode: "demo",
+    canSignUp,
     viewer: { email: "demo@spendify.app", initials: "CK" },
     asOf: AS_OF,
     accounts: bankAccounts,

@@ -13,10 +13,10 @@ export const dynamic = "force-dynamic";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ next?: string }>;
+  searchParams: Promise<{ next?: string; mode?: string }>;
 }) {
-  const { next } = await searchParams;
-  const safeNext = next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/";
+  const { next, mode } = await searchParams;
+  const safeNext = next && next.startsWith("/") && !next.startsWith("//") && !next.startsWith("/\\") ? next : "/overview";
   if (isLiveMode() && (await getCurrentUser())) redirect(safeNext);
 
   return (
@@ -29,7 +29,7 @@ export default async function LoginPage({
         <h1 className="text-[28px] leading-tight font-bold tracking-[-0.02em]">Welcome</h1>
         <p className="mt-2 mb-8 text-[15px] text-ink-soft">See what you really received and spent, across every bank.</p>
         {isLiveMode() ? (
-          <AuthForm next={safeNext} />
+          <AuthForm next={safeNext} initialMode={mode === "signup" ? "signup" : "signin"} />
         ) : (
           <div className="space-y-4">
             <p className="text-[15px] leading-relaxed text-ink-soft">
@@ -37,7 +37,7 @@ export default async function LoginPage({
               <span className="font-mono text-[13px]">DATABASE_URL</span> (see <span className="font-mono text-[13px]">.env.example</span>) to turn on
               accounts.
             </p>
-            <Link href="/" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-violet text-[16px] font-medium text-white">
+            <Link href="/overview" className="inline-flex h-12 w-full items-center justify-center rounded-full bg-violet text-[16px] font-medium text-white">
               Explore the demo
             </Link>
           </div>

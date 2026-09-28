@@ -23,8 +23,12 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000. With no environment variables set, Spendify runs in **demo mode**,
-with five years of sample statements across four banks. There's no login and nothing is saved.
+Open http://localhost:3000 for the landing page. With no environment variables set, Spendify runs
+in **demo mode**, with five years of sample statements across four banks. There's no login and nothing
+is saved (the app lives at `/overview`).
+
+In live mode, visitors can still press **Try it with sample data** (`/demo`) to explore the demo
+without an account. Nothing they change is saved.
 
 ## Use your own data (live mode)
 
@@ -54,7 +58,8 @@ no third-party auth service to set up.
 - Failed sign-ins are rate limited per email and per IP (in memory, so per instance).
 - Every database query is scoped to the signed-in user's id (`lib/data/repo.ts`). All writes are
   server actions validated with zod (`app/actions.ts`).
-- Deleting a user removes all of their accounts, transactions, budgets, goals and sessions.
+- Users can delete their account (Bank accounts page). That removes all of their banks,
+  transactions, budgets, goals and sessions.
 
 ## Scripts
 
@@ -70,8 +75,10 @@ no third-party auth service to set up.
 ## Where things live
 
 ```
-app/(app)/          pages behind the shared header (overview, transactions, inflow, budgets, goals, import, accounts)
+app/page.tsx        landing page (components/landing)
+app/(app)/          the app: overview, transactions, inflow, budgets, goals, import, accounts
 app/login           sign in / create account
+app/demo            "try the demo" for visitors in live mode
 app/api/health      health check for Railway
 app/actions.ts      server actions (all writes, sign in/up/out)
 lib/auth/           password hashing, sessions, rate limiting

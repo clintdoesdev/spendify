@@ -8,7 +8,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const workspace = await getWorkspace();
   return (
     <div className="flex min-h-screen flex-col">
-      <AppHeader viewer={workspace.viewer} mode={workspace.mode} />
+      <AppHeader viewer={workspace.viewer} mode={workspace.mode} canSignUp={workspace.canSignUp} />
       <main className="flex-1 pb-20">{children}</main>
     </div>
   );

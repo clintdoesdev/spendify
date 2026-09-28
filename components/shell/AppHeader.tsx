@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Landmark, LogOut, Upload } from "lucide-react";
+import { Landmark, LogOut, Upload, UserPlus, X } from "lucide-react";
 
 import { signOutAction } from "@/app/actions";
 import { Container } from "@/components/ui/kit";
@@ -11,29 +11,43 @@ import type { Viewer } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/", label: "Overview" },
+  { href: "/overview", label: "Overview" },
   { href: "/transactions", label: "Transactions" },
   { href: "/inflow", label: "True Inflow" },
   { href: "/budgets", label: "Budgets" },
   { href: "/goals", label: "Goals" },
 ];
 
-export function AppHeader({ viewer, mode }: { viewer: Viewer; mode: "demo" | "live" }) {
+export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "demo" | "live"; canSignUp: boolean }) {
   const pathname = usePathname();
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) => pathname.startsWith(href);
 
   return (
     <header className="sticky top-0 z-30 border-b border-hairline bg-white/90 backdrop-blur-md">
       {mode === "demo" && (
         <div className="bg-violet-wash">
-          <Container className="flex items-center justify-center gap-2 py-2 text-center text-[13px] text-ink-soft">
-            <span className="size-1.5 shrink-0 rounded-full bg-violet" />
-            Demo mode: sample statements, nothing is saved. Add the env vars in .env.example to use your own.
+          <Container className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2 text-center text-[13px] text-ink-soft">
+            <span className="flex items-center gap-2">
+              <span className="size-1.5 shrink-0 rounded-full bg-violet" />
+              {canSignUp
+                ? "You're exploring sample data. Nothing you change is saved."
+                : "Demo mode: sample statements, nothing is saved. Set DATABASE_URL to use your own."}
+            </span>
+            {canSignUp && (
+              <span className="flex items-center gap-3">
+                <Link href="/login?mode=signup" className="font-medium text-violet underline-offset-4 hover:underline">
+                  Create your account
+                </Link>
+                <a href="/demo/exit" className="text-ink-soft underline-offset-4 hover:underline">
+                  Exit demo
+                </a>
+              </span>
+            )}
           </Container>
         </div>
       )}
       <Container className="flex h-[68px] items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2.5" aria-label="Spendify overview">
+        <Link href="/overview" className="flex items-center gap-2.5" aria-label="Spendify overview">
           <span className="flex size-9 items-center justify-center rounded-[10px] bg-violet text-[17px] font-bold text-white">
             S
           </span>
@@ -67,7 +81,7 @@ export function AppHeader({ viewer, mode }: { viewer: Viewer; mode: "demo" | "li
             <Upload className="size-4" />
             <span className="hidden sm:inline">Import</span>
           </Link>
-          <AccountMenu viewer={viewer} mode={mode} />
+          <AccountMenu viewer={viewer} mode={mode} canSignUp={canSignUp} />
         </div>
       </Container>
 
@@ -92,7 +106,7 @@ export function AppHeader({ viewer, mode }: { viewer: Viewer; mode: "demo" | "li
   );
 }
 
-function AccountMenu({ viewer, mode }: { viewer: Viewer; mode: "demo" | "live" }) {
+function AccountMenu({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "demo" | "live"; canSignUp: boolean }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -136,6 +150,20 @@ function AccountMenu({ viewer, mode }: { viewer: Viewer; mode: "demo" | "live" }
           >
             <Landmark className="size-4" /> Bank accounts
           </Link>
+          {mode === "demo" && canSignUp && (
+            <>
+              <Link
+                href="/login?mode=signup"
+                role="menuitem"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] text-ink hover:bg-cloud"
+              >
+                <UserPlus className="size-4" /> Create account
+              </Link>
+              <a href="/demo/exit" role="menuitem" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[15px] text-ink hover:bg-cloud">
+                <X className="size-4" /> Exit demo
+              </a>
+            </>
+          )}
           {mode === "live" && (
             <form action={signOutAction}>
               <button

@@ -5,8 +5,8 @@ import { useActionState, useState } from "react";
 import { signInAction, signUpAction, type AuthState } from "@/app/actions";
 import { Notice, PillButton, Segmented, TextField } from "@/components/ui/kit";
 
-export function AuthForm({ next }: { next: string }) {
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+export function AuthForm({ next, initialMode = "signin" }: { next: string; initialMode?: "signin" | "signup" }) {
+  const [mode, setMode] = useState<"signin" | "signup">(initialMode);
   const [signInState, signIn, signingIn] = useActionState<AuthState, FormData>(signInAction, undefined);
   const [signUpState, signUp, signingUp] = useActionState<AuthState, FormData>(signUpAction, undefined);
   const state = mode === "signin" ? signInState : signUpState;

@@ -45,6 +45,11 @@ export async function findSessionUser(db: Db, token: string): Promise<AuthUser |
   return row ?? null;
 }
 
+/** Deletes a user; every table they own cascades. */
+export async function deleteUser(db: Db, userId: string) {
+  await db.delete(users).where(eq(users.id, userId));
+}
+
 export async function deleteSession(db: Db, token: string) {
   await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
 }

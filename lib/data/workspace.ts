@@ -5,7 +5,7 @@ import { cache } from "react";
 
 import { getDb } from "@/lib/db/client";
 import { isLiveMode } from "@/lib/env";
-import { getCurrentUser } from "@/lib/auth/session";
+import { getCurrentUser, isDemoVisitor } from "@/lib/auth/session";
 
 import { demoWorkspace } from "./demo";
 import { getPrefs, listAccounts, listBudgets, listGoals, listLines } from "./repo";
@@ -15,17 +15,18 @@ export function todayInLagos() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
 }
 
-/** The signed-in user's id, for server actions. Throws in demo mode or when signed out. */
+/** The signed-in user's id, for server actions. Throws on sample data or when signed out. */
 export async function requireUserId() {
   if (!isLiveMode()) throw new DemoModeError();
   const user = await getCurrentUser();
-  if (!user) throw new Error("Not signed in");
-  return user.id;
+  if (user) return user.id;
+  if (await isDemoVisitor()) throw new DemoModeError();
+  throw new Error("Not signed in");
 }
 
 export class DemoModeError extends Error {
   constructor() {
-    super("Spendify is running in demo mode, so nothing can be saved. Set DATABASE_URL (see .env.example).");
+    super("This is sample data, so nothing is saved. Create an account to use your own.");
   }
 }
 
@@ -36,10 +37,14 @@ function initialsFor(name: string) {
 
 /** Loads everything the pages need, once per request. */
 export const getWorkspace = cache(async (): Promise<Workspace> => {
-  if (!isLiveMode()) return demoWorkspace();
+  if (!isLiveMode()) return demoWorkspace({ canSignUp: false });
 
   const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  if (!user) {
+    // Visitors who pressed "Try the demo" on the landing page explore the sample data.
+    if (await isDemoVisitor()) return demoWorkspace({ canSignUp: true });
+    redirect("/login");
+  }
 
   const db = getDb();
   const [accounts, lines, prefs, budgets, goals] = await Promise.all([
@@ -52,6 +57,7 @@ export const getWorkspace = cache(async (): Promise<Workspace> => {
 
   return {
     mode: "live",
+    canSignUp: false,
     viewer: { email: user.email, initials: initialsFor(user.name || user.email) },
     asOf: todayInLagos(),
     accounts,
