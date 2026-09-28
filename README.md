@@ -46,9 +46,27 @@ no third-party auth service to set up.
 2. **New → Database → PostgreSQL** in the same project.
 3. In the app service → **Variables**, add `DATABASE_URL` with the value `${{Postgres.DATABASE_URL}}`
    (Railway's reference to the database's private URL).
-4. Deploy. `npm start` applies any pending migrations, then starts the server, so the tables are
+4. Deploy. Migrations run automatically on every deployment (see below), so the tables are
    created on the first deploy and kept up to date after that.
 5. **Settings → Networking → Generate Domain** to get a public URL, then open it and create your account.
+
+### Database migrations
+
+Nothing to run by hand. On every deploy:
+
+1. **Build:** `npm run build` first checks that `lib/db/schema.ts` matches the migrations in
+   `drizzle/`. If you changed the schema but forgot `npm run db:generate`, the build fails with a
+   message saying so, instead of shipping code the database can't serve.
+2. **Pre-deploy:** Railway runs `npm run db:migrate` (`preDeployCommand` in `railway.json`) before
+   the new version gets traffic. It waits up to 60s for Postgres, takes a lock so replicas never
+   migrate twice, applies pending migrations in one transaction and checks every table and column
+   exists. If it fails, the deploy stops and the previous version keeps running.
+3. **Start:** `npm start` runs the same step again (a no-op when already done), so other hosts work too.
+4. **Health check:** `/api/health` returns 503 until the database has every migration in the build.
+
+To change the schema: edit `lib/db/schema.ts`, run `npm run db:generate`, commit the new file in
+`drizzle/`, push. A database made with `drizzle-kit push` (tables but no migration history) is
+adopted automatically.
 
 ### Security
 
@@ -70,7 +88,8 @@ no third-party auth service to set up.
 | `npm run lint` · `npm run typecheck` | ESLint · TypeScript |
 | `npm test` | Unit tests. Repository tests also run when `TEST_DATABASE_URL` is set |
 | `npm run db:generate` | New migration after editing `lib/db/schema.ts` |
-| `npm run db:migrate` | Apply migrations to `DATABASE_URL` (also runs on `npm start`) |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` (runs on every deploy and on `npm start`) |
+| `npm run db:check` | Check the schema has no changes without a migration (runs on `npm run build`) |
 
 ## Where things live
 
