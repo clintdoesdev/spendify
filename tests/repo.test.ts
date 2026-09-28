@@ -1,10 +1,10 @@
-import { randomUUID } from "node:crypto";
-
 import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
+import { hashPassword, verifyPassword } from "@/lib/auth/password";
+import { createSession, createUser, deleteSession, findSessionUser, findUserByEmail } from "@/lib/auth/store";
 import * as repo from "@/lib/data/repo";
 import * as schema from "@/lib/db/schema";
 import { fingerprintLines } from "@/lib/import/fingerprint";
@@ -18,8 +18,8 @@ describe.skipIf(!adminUrl)("repository (Postgres)", () => {
   let admin: postgres.Sql;
   let client: postgres.Sql;
   let db: repo.Db;
-  const alice = randomUUID();
-  const bob = randomUUID();
+  let alice: string;
+  let bob: string;
 
   beforeAll(async () => {
     admin = postgres(adminUrl!, { max: 1 });
@@ -29,6 +29,8 @@ describe.skipIf(!adminUrl)("repository (Postgres)", () => {
     client = postgres(url.toString(), { max: 1, onnotice: () => {} });
     db = drizzle(client, { schema });
     await migrate(db, { migrationsFolder: "drizzle" });
+    alice = (await createUser(db, { email: "Alice@Example.com", name: "Alice", passwordHash: "x" }))!;
+    bob = (await createUser(db, { email: "bob@example.com", name: "Bob", passwordHash: "x" }))!;
   });
 
   afterAll(async () => {
@@ -101,9 +103,57 @@ describe.skipIf(!adminUrl)("repository (Postgres)", () => {
     expect((await repo.listGoals(db, alice))[0].saved).toBe(0);
   });
 
+  it("treats emails case-insensitively and refuses duplicates", async () => {
+    expect((await findUserByEmail(db, "  alice@EXAMPLE.com "))?.id).toBe(alice);
+    expect(await createUser(db, { email: "ALICE@example.com", name: "", passwordHash: "x" })).toBeNull();
+  });
+
+  it("finds a session's user until it's deleted or expired", async () => {
+    const { token } = await createSession(db, alice);
+    expect(await findSessionUser(db, token)).toEqual({ id: alice, email: "Alice@Example.com", name: "Alice" });
+    expect(await findSessionUser(db, token + "x")).toBeNull();
+    await deleteSession(db, token);
+    expect(await findSessionUser(db, token)).toBeNull();
+
+    const expired = await createSession(db, bob);
+    await client`update sessions set expires_at = now() - interval '1 minute'`;
+    expect(await findSessionUser(db, expired.token)).toBeNull();
+  });
+
+  it("stores only a hash of the session token", async () => {
+    const { token } = await createSession(db, alice);
+    const rows = await client`select token_hash from sessions`;
+    expect(rows.map((r) => r.token_hash)).not.toContain(token);
+  });
+
   it("deleting an account removes its lines", async () => {
     const [account] = await repo.listAccounts(db, alice);
     await repo.deleteAccount(db, alice, account.id);
     expect(await repo.listLines(db, alice)).toEqual([]);
+  });
+
+  it("deleting a user removes everything they own", async () => {
+    await repo.createAccount(db, bob, { institution: "Kuda", label: "", last4: "" });
+    await client`delete from users where id = ${bob}`;
+    expect(await repo.listAccounts(db, bob)).toEqual([]);
+    const [{ count }] = await client`select count(*)::int as count from sessions where user_id = ${bob}`;
+    expect(count).toBe(0);
+  });
+});
+
+describe("passwords", () => {
+  it("verifies the right password only", async () => {
+    const hash = await hashPassword("correct horse battery");
+    expect(hash.startsWith("scrypt$")).toBe(true);
+    expect(await verifyPassword("correct horse battery", hash)).toBe(true);
+    expect(await verifyPassword("correct horse batterY", hash)).toBe(false);
+  });
+
+  it("salts every hash", async () => {
+    expect(await hashPassword("same")).not.toBe(await hashPassword("same"));
+  });
+
+  it("rejects malformed hashes", async () => {
+    expect(await verifyPassword("x", "not-a-hash")).toBe(false);
   });
 });

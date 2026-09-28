@@ -9,8 +9,8 @@ import { EXCLUSION_REASONS, type BankAccount, type ExclusionReason, type Stateme
 
 import type { Budget, Goal } from "./types";
 
-// Data access for one user. Every query is scoped by userId: the app connects as the table
-// owner, so this filter (not row level security) is what keeps users apart.
+// Data access for one user. Every query is scoped by userId: this filter is what keeps
+// users' data apart, so never add a query without it.
 
 export type Db = PostgresJsDatabase<typeof schema>;
 

@@ -7,7 +7,7 @@
 A working Next.js 15 app on a light design system (`docs/DESIGN.md`), running in two modes:
 
 - **Demo:** no env vars, five years of sample statements across four banks, nothing saved.
-- **Live:** Supabase email login, Postgres (Drizzle) with row level security, your own imported statements.
+- **Live:** email + password accounts, Postgres (Drizzle) on Railway, your own imported statements.
 
 Pages: Overview, Transactions, True Inflow, Budgets, Goals, Import, Bank accounts, Sign in. Every number
 is computed from statement lines. Tests cover the True Inflow engine, spending analysis, CSV and alert
@@ -100,15 +100,15 @@ Everything is reversible: each group has a "count this as income" switch, and ea
 | Concern | Choice | Why |
 |---|---|---|
 | App | Next.js 15 App Router (existing) | Keep; use Server Components + Server Actions for mutations |
-| DB | Postgres (Supabase) | Managed, free tier, Row Level Security for per-user isolation |
+| DB | Postgres on Railway | Managed, cheap, one variable (`DATABASE_URL`) |
 | ORM / queries | Drizzle | Typed schema + migrations, lightweight |
-| Auth | Supabase Auth (email magic link + Google) | Pairs with RLS, no extra service |
+| Auth | Built-in email + password (scrypt, hashed session tokens) | No third-party auth service |
 | Validation | Zod | Shared between forms and server actions |
 | Money | Integer **kobo/cents** (`bigint`) + currency code | Never floats for money |
 | Charts | Recharts (existing) | Keep |
 | Categorisation | Rules engine → Claude API fallback | Cheap/deterministic first, AI for the long tail |
 | Tests | Vitest (logic) + Playwright (flows) | |
-| Deploy | Vercel + Supabase | |
+| Deploy | Railway (app + Postgres) | Migrations run on start |
 
 ### Data model (first cut)
 
@@ -140,8 +140,8 @@ fx_rates         date, base, quote, rate
 - [x] Compute summary stats/budget totals from transactions instead of hard-coded strings
 
 ### Phase 1 — Real data (≈2 weeks)
-- [x] Drizzle schema + migrations for Supabase Postgres (demo data stays in code, no seed needed)
-- [x] Auth: sign-in page, protected routes via middleware, RLS policies
+- [x] Drizzle schema + migrations for Postgres (demo data stays in code, no seed needed)
+- [x] Auth: email + password accounts, protected pages, per-user data scoping
 - [x] Accounts CRUD
 - [x] Transactions: filters (account, direction, category, month, search), export
 - [ ] Manual add/edit of a transaction; server-side pagination for very large histories
@@ -185,7 +185,7 @@ fx_rates         date, base, quote, rate
 - **Manual entry fatigue** is what kills budgeting apps → Phase 2 is the real product, don't let it slip
 - Open questions for us to decide:
   1. Is Nigeria-first the positioning we want, or keep it currency-agnostic from day one? (Plan assumes NGN-first, multi-currency capable.)
-  2. Supabase vs self-managed Postgres + Auth.js?
+  2. ~~Supabase vs self-managed Postgres~~ Decided: Railway Postgres with built-in auth. Next: password reset by email (needs an email provider).
   3. Monetisation: free core + paid (auto-import, AI categorisation, reports) at ~₦2–3k/month?
   4. Web-only/PWA for v1, or is a native app a must?
 
@@ -193,7 +193,7 @@ fx_rates         date, base, quote, rate
 Light fintech system: Inter, one Signal Violet accent, pill controls and Cloud cards. Every page uses it (see `docs/DESIGN.md`).
 
 ## 8. Suggested next step
-1. Connect a real Supabase project and import your own statements from each bank. Real files will show
+1. Deploy to Railway and import your own statements from each bank. Real files will show
    which formats the CSV and alert parsers still miss.
 2. Add CI (lint, typecheck, tests with a Postgres service, build) so every PR is checked.
 3. Proof-of-income PDF from True Inflow.

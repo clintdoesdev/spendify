@@ -5,7 +5,7 @@ import { cache } from "react";
 
 import { getDb } from "@/lib/db/client";
 import { isLiveMode } from "@/lib/env";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/session";
 
 import { demoWorkspace } from "./demo";
 import { getPrefs, listAccounts, listBudgets, listGoals, listLines } from "./repo";
@@ -15,25 +15,17 @@ export function todayInLagos() {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Lagos" }).format(new Date());
 }
 
-const getSessionUser = cache(async () => {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  return user;
-});
-
 /** The signed-in user's id, for server actions. Throws in demo mode or when signed out. */
 export async function requireUserId() {
   if (!isLiveMode()) throw new DemoModeError();
-  const user = await getSessionUser();
+  const user = await getCurrentUser();
   if (!user) throw new Error("Not signed in");
   return user.id;
 }
 
 export class DemoModeError extends Error {
   constructor() {
-    super("Spendify is running in demo mode, so nothing can be saved. Add the env vars in .env.example.");
+    super("Spendify is running in demo mode, so nothing can be saved. Set DATABASE_URL (see .env.example).");
   }
 }
 
@@ -46,7 +38,7 @@ function initialsFor(name: string) {
 export const getWorkspace = cache(async (): Promise<Workspace> => {
   if (!isLiveMode()) return demoWorkspace();
 
-  const user = await getSessionUser();
+  const user = await getCurrentUser();
   if (!user) redirect("/login");
 
   const db = getDb();
@@ -58,14 +50,15 @@ export const getWorkspace = cache(async (): Promise<Workspace> => {
     listGoals(db, user.id),
   ]);
 
-  const fullName = typeof user.user_metadata?.full_name === "string" ? user.user_metadata.full_name : "";
   return {
     mode: "live",
-    viewer: { email: user.email ?? "", initials: initialsFor(fullName || user.email || "") },
+    viewer: { email: user.email, initials: initialsFor(user.name || user.email) },
     asOf: todayInLagos(),
     accounts,
     lines,
-    prefs,
+    // Until the user sets their own, the name they signed up with is the best guess for
+    // how their self-transfers appear in narrations.
+    prefs: { ...prefs, ownNames: prefs.ownNames.length ? prefs.ownNames : user.name ? [user.name.toUpperCase()] : [] },
     budgets,
     goals,
   };

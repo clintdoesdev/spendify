@@ -1,6 +1,9 @@
 import { AppHeader } from "@/components/shell/AppHeader";
 import { getWorkspace } from "@/lib/data/workspace";
 
+// Decide demo vs live at request time, from the runtime DATABASE_URL, never at build time.
+export const dynamic = "force-dynamic";
+
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const workspace = await getWorkspace();
   return (

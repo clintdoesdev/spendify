@@ -28,56 +28,59 @@ with five years of sample statements across four banks. There's no login and not
 
 ## Use your own data (live mode)
 
-1. Create a project at [supabase.com](https://supabase.com) (the free tier is fine).
-2. Copy `.env.example` to `.env.local` and fill in:
+Set `DATABASE_URL` to a Postgres database and Spendify switches to live mode, with email and
+password accounts, where each person sees only their own data. That's the only variable. There's
+no third-party auth service to set up.
 
-   | Variable | Where to find it |
-   |---|---|
-   | `NEXT_PUBLIC_SUPABASE_URL` | Project Settings → API → Project URL |
-   | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Project Settings → API → `anon` / publishable key |
-   | `DATABASE_URL` | Connect → Transaction pooler (port 6543), with your database password |
+**Locally:** copy `.env.example` to `.env.local`, set `DATABASE_URL`, then `npm run db:migrate` and
+`npm run dev`.
 
-3. Create the tables: `npm run db:migrate`
-4. In Supabase → Authentication → URL Configuration, set **Site URL** to your app's URL and add
-   `http://localhost:3000/auth/callback` (and your production `/auth/callback`) to **Redirect URLs**.
-5. Restart `npm run dev`. You'll be asked to sign in with an emailed link.
+## Deploy on Railway
 
-Setting the two `NEXT_PUBLIC_SUPABASE_*` values is what switches live mode on. They are baked in at
-build time, so rebuild after changing them. `DATABASE_URL` is required in live mode.
+1. In a Railway project, **New → GitHub Repo** and pick this repo. Railway detects Next.js and
+   uses `railway.json` (start command, health check at `/api/health`).
+2. **New → Database → PostgreSQL** in the same project.
+3. In the app service → **Variables**, add `DATABASE_URL` with the value `${{Postgres.DATABASE_URL}}`
+   (Railway's reference to the database's private URL).
+4. Deploy. `npm start` applies any pending migrations, then starts the server, so the tables are
+   created on the first deploy and kept up to date after that.
+5. **Settings → Networking → Generate Domain** to get a public URL, then open it and create your account.
 
 ### Security
 
-- The app connects to Postgres as the table owner and scopes **every** query to the signed-in
-  user's id (`lib/data/repo.ts`).
-- Row level security is also enabled with owner-only policies (`drizzle/0001_row_level_security.sql`),
-  so Supabase's public API can only ever reach a user's own rows.
-- All writes are server actions validated with zod (`app/actions.ts`).
-- `DATABASE_URL` is server-only.
+- Passwords are hashed with scrypt (`lib/auth/password.ts`). Sessions are random tokens in an
+  httpOnly cookie, and only their SHA-256 hash is stored, so a leaked database can't be used to
+  sign in.
+- Failed sign-ins are rate limited per email and per IP (in memory, so per instance).
+- Every database query is scoped to the signed-in user's id (`lib/data/repo.ts`). All writes are
+  server actions validated with zod (`app/actions.ts`).
+- Deleting a user removes all of their accounts, transactions, budgets, goals and sessions.
 
 ## Scripts
 
 | Command | What it does |
 |---|---|
 | `npm run dev` | Dev server |
-| `npm run build` / `npm start` | Production build / serve |
+| `npm run build` / `npm start` | Production build / apply migrations and serve |
 | `npm run lint` · `npm run typecheck` | ESLint · TypeScript |
 | `npm test` | Unit tests. Repository tests also run when `TEST_DATABASE_URL` is set |
 | `npm run db:generate` | New migration after editing `lib/db/schema.ts` |
-| `npm run db:migrate` | Apply migrations to `DATABASE_URL` |
+| `npm run db:migrate` | Apply migrations to `DATABASE_URL` (also runs on `npm start`) |
 
 ## Where things live
 
 ```
 app/(app)/          pages behind the shared header (overview, transactions, inflow, budgets, goals, import, accounts)
-app/login, app/auth sign-in page and magic-link callback
-app/actions.ts      server actions (all writes)
-middleware.ts       Supabase session refresh + sign-in redirect (live mode only)
+app/login           sign in / create account
+app/api/health      health check for Railway
+app/actions.ts      server actions (all writes, sign in/up/out)
+lib/auth/           password hashing, sessions, rate limiting
 lib/inflow/         True Inflow engine: transfer matching, exclusions, aggregation
 lib/finance/        spending categories, received-vs-spent analysis, bank colours
 lib/import/         CSV and alert parsers, dedupe fingerprints
 lib/data/           workspace loader (demo or live) and database queries
 lib/db/             Drizzle schema and client
-drizzle/            SQL migrations
+drizzle/            SQL migrations (applied by scripts/migrate.mjs)
 docs/DESIGN.md      design system
 PLAN.md             product plan and roadmap
 ```

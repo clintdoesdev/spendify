@@ -1,9 +1,14 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
+import { DUMMY_HASH, hashPassword, verifyPassword } from "@/lib/auth/password";
+import { endSession, startSession } from "@/lib/auth/session";
+import { createUser, findUserByEmail } from "@/lib/auth/store";
+import { clearFailures, isThrottled, recordFailure } from "@/lib/auth/throttle";
 import * as repo from "@/lib/data/repo";
 import { DemoModeError, requireUserId } from "@/lib/data/workspace";
 import { getDb } from "@/lib/db/client";
@@ -11,7 +16,6 @@ import { isLiveMode } from "@/lib/env";
 import { SPEND_CATEGORIES } from "@/lib/finance/categorize";
 import { fingerprintLines } from "@/lib/import/fingerprint";
 import { EXCLUSION_REASONS } from "@/lib/inflow/types";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 export type ActionResult<T = undefined> = { ok: true; data?: T; message?: string } | { ok: false; error: string };
 
@@ -169,10 +173,66 @@ export async function deleteGoalAction(goalId: string) {
 
 // Session
 
-export async function signOutAction() {
-  if (isLiveMode()) {
-    const supabase = await createSupabaseServerClient();
-    await supabase.auth.signOut();
+export type AuthState = { error?: string; email?: string; name?: string } | undefined;
+
+const credentials = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address").max(200),
+  password: z.string().min(8, "Use at least 8 characters for your password").max(200),
+});
+
+function safeNext(next: FormDataEntryValue | null) {
+  const value = typeof next === "string" ? next : "";
+  return value.startsWith("/") && !value.startsWith("//") && !value.startsWith("/\\") ? value : "/";
+}
+
+async function clientIp() {
+  return (await headers()).get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+}
+
+export async function signUpAction(_: AuthState, form: FormData): Promise<AuthState> {
+  if (!isLiveMode()) return { error: "Demo mode: set DATABASE_URL to create accounts." };
+  const name = String(form.get("name") ?? "").trim().slice(0, 80);
+  const parsed = credentials.safeParse({ email: form.get("email"), password: form.get("password") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message, email: String(form.get("email") ?? ""), name };
+
+  const ipKey = `signup:${await clientIp()}`;
+  if (isThrottled(ipKey, 10)) return { error: "Too many sign-ups from this network. Try again in 15 minutes." };
+  recordFailure(ipKey);
+
+  const userId = await createUser(getDb(), {
+    email: parsed.data.email,
+    name,
+    passwordHash: await hashPassword(parsed.data.password),
+  });
+  if (!userId) return { error: "An account with this email already exists. Sign in instead.", email: parsed.data.email, name };
+
+  await startSession(userId);
+  redirect(safeNext(form.get("next")));
+}
+
+export async function signInAction(_: AuthState, form: FormData): Promise<AuthState> {
+  if (!isLiveMode()) return { error: "Demo mode: there's nothing to sign in to." };
+  const email = String(form.get("email") ?? "").trim().toLowerCase();
+  const password = String(form.get("password") ?? "");
+  const keys = [`signin:${email}`, `signin-ip:${await clientIp()}`];
+  if (isThrottled(keys[0], 8) || isThrottled(keys[1], 40)) {
+    return { error: "Too many attempts. Wait 15 minutes and try again.", email };
   }
+
+  const user = email ? await findUserByEmail(getDb(), email) : null;
+  // Always run a hash comparison so response time doesn't reveal whether the email exists.
+  const valid = await verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
+  if (!user || !valid) {
+    keys.forEach(recordFailure);
+    return { error: "Email or password is incorrect.", email };
+  }
+
+  keys.forEach(clearFailures);
+  await startSession(user.id);
+  redirect(safeNext(form.get("next")));
+}
+
+export async function signOutAction() {
+  if (isLiveMode()) await endSession();
   redirect("/login");
 }

@@ -8,7 +8,7 @@ import * as schema from "./schema";
 export type Database = ReturnType<typeof createDb>;
 
 export function createDb(url: string) {
-  // prepare: false keeps it compatible with Supabase's transaction pooler (port 6543).
+  // prepare: false keeps it compatible with connection poolers such as PgBouncer.
   const client = postgres(url, { prepare: false, max: 5 });
   return drizzle(client, { schema });
 }
@@ -20,7 +20,7 @@ export function getDb(): Database {
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error(
-      "DATABASE_URL is not set. Live mode (Supabase variables present) needs it — see .env.example."
+      "DATABASE_URL is not set — see .env.example."
     );
   }
   globalForDb.spendifyDb ??= createDb(url);

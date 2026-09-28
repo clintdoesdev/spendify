@@ -1,6 +1,6 @@
 import { defineConfig } from "drizzle-kit";
 
-// drizzle-kit doesn't read Next's env files, so load .env.local when it exists.
+// drizzle-kit (used for generating migrations) doesn't read Next's env files.
 try {
   process.loadEnvFile(".env.local");
 } catch {

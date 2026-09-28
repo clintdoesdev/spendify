@@ -12,13 +12,45 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
-// Every row belongs to a Supabase auth user (auth.users.id). Money is stored in kobo.
+// Every row belongs to a user. Money is stored in kobo.
+
+export const users = pgTable(
+  "users",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    email: text("email").notNull(),
+    name: text("name").notNull().default(""),
+    /** scrypt hash, see lib/auth/password.ts */
+    passwordHash: text("password_hash").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("users_email_idx").on(sql`lower(${t.email})`)]
+);
+
+export const sessions = pgTable(
+  "sessions",
+  {
+    /** sha256 of the cookie token, so a leaked database can't be used to sign in. */
+    tokenHash: text("token_hash").primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("sessions_user_idx").on(t.userId)]
+);
+
+const owner = () =>
+  uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" });
 
 export const bankAccounts = pgTable(
   "bank_accounts",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull(),
+    userId: owner(),
     institution: text("institution").notNull(),
     label: text("label").notNull().default(""),
     last4: text("last4").notNull().default(""),
@@ -31,7 +63,7 @@ export const statementLines = pgTable(
   "statement_lines",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull(),
+    userId: owner(),
     accountId: uuid("account_id")
       .notNull()
       .references(() => bankAccounts.id, { onDelete: "cascade" }),
@@ -53,7 +85,9 @@ export const statementLines = pgTable(
 );
 
 export const inflowPreferences = pgTable("inflow_preferences", {
-  userId: uuid("user_id").primaryKey(),
+  userId: uuid("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
   /** Names the user's own transfers show up under in narrations. */
   ownNames: text("own_names").array().notNull().default(sql`'{}'::text[]`),
   countedReasons: text("counted_reasons").array().notNull().default(sql`'{}'::text[]`),
@@ -65,7 +99,7 @@ export const budgets = pgTable(
   "budgets",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull(),
+    userId: owner(),
     category: text("category").notNull(),
     monthlyLimitKobo: bigint("monthly_limit_kobo", { mode: "number" }).notNull(),
   },
@@ -76,7 +110,7 @@ export const goals = pgTable(
   "goals",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    userId: uuid("user_id").notNull(),
+    userId: owner(),
     name: text("name").notNull(),
     targetKobo: bigint("target_kobo", { mode: "number" }).notNull(),
     savedKobo: bigint("saved_kobo", { mode: "number" }).notNull().default(0),
