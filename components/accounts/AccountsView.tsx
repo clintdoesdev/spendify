@@ -111,7 +111,7 @@ export function AccountsView({ workspace }: { workspace: Workspace }) {
                       </p>
                     </div>
                     {!c && (
-                      <Link href="/import" className="hidden text-[14px] font-medium text-violet sm:inline">
+                      <Link href="/import" className="hidden text-[14px] font-medium text-brand sm:inline">
                         Import
                       </Link>
                     )}
@@ -120,7 +120,7 @@ export function AccountsView({ workspace }: { workspace: Workspace }) {
                         <PillButton className="h-9 bg-loss px-4 text-[14px] hover:bg-loss/90" onClick={() => removeAccount(account)} disabled={pending}>
                           Delete
                         </PillButton>
-                        <button type="button" aria-label="Cancel" onClick={() => setConfirming(null)} className="flex size-9 items-center justify-center rounded-full hover:bg-white">
+                        <button type="button" aria-label="Cancel" onClick={() => setConfirming(null)} className="flex size-9 items-center justify-center rounded-full hover:bg-raised">
                           <X className="size-4" />
                         </button>
                       </span>
@@ -129,7 +129,7 @@ export function AccountsView({ workspace }: { workspace: Workspace }) {
                         type="button"
                         aria-label={`Delete ${account.institution}`}
                         onClick={() => setConfirming(account.id)}
-                        className="flex size-9 items-center justify-center rounded-full text-ink-soft hover:bg-white hover:text-ink"
+                        className="flex size-9 items-center justify-center rounded-full text-ink-soft hover:bg-raised hover:text-ink"
                       >
                         <Trash2 className="size-4" />
                       </button>
@@ -212,7 +212,7 @@ function OwnNames({ names, onChange }: { names: string[]; onChange: (names: stri
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         {names.map((name) => (
-          <span key={name} className="inline-flex h-9 items-center gap-1 rounded-full bg-white pr-1.5 pl-3.5 text-[14px] text-ink">
+          <span key={name} className="inline-flex h-9 items-center gap-1 rounded-full bg-raised pr-1.5 pl-3.5 text-[14px] text-ink">
             {name}
             <button
               type="button"
@@ -238,7 +238,7 @@ function OwnNames({ names, onChange }: { names: string[]; onChange: (names: stri
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder="ADA OBI"
-            className="block h-11 w-full rounded-full border border-hairline bg-white px-4 text-[15px] uppercase placeholder:text-ash placeholder:normal-case focus:border-violet focus:ring-2 focus:ring-violet/20 focus:outline-none"
+            className="block h-11 w-full rounded-full border border-pebble/45 bg-raised px-4 text-[15px] transition-colors hover:border-pebble uppercase placeholder:text-pebble placeholder:normal-case focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
           />
         </label>
         <PillButton type="submit" variant="ghost" className="h-11 px-5">

@@ -14,6 +14,12 @@ export function AuthForm({ next, initialMode = "signin" }: { next: string; initi
 
   return (
     <div>
+      <h1 className="text-[44px] leading-[0.92] font-black tracking-[-0.045em] text-ink sm:text-[52px]">
+        {mode === "signup" ? "Let's get you set up." : "Welcome back."}
+      </h1>
+      <p className="mt-4 mb-8 text-[16px] text-ink-soft">
+        See what you really received, spent and kept, across every bank.
+      </p>
       <Segmented
         label="Sign in or create an account"
         value={mode}

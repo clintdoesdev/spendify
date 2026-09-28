@@ -91,7 +91,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
           title="Add a bank first"
           body="Tell us which banks and wallets you use, then import a statement for each one."
           action={
-            <Link href="/accounts" className="inline-flex h-11 items-center gap-2 rounded-full bg-violet px-6 text-[15px] font-medium text-white">
+            <Link href="/accounts" className="inline-flex h-11 items-center gap-2 rounded-full bg-lime px-6 text-[15px] font-medium text-forest">
               Add a bank <ArrowRight className="size-4" />
             </Link>
           }
@@ -116,7 +116,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
         {/* Step 1 + 2 */}
         <Card className="space-y-6">
           <Step n={1} title="Which account is this for?">
-            <SelectField label="Account" className="[&>span]:sr-only" value={accountId} onChange={(e) => setAccountId(e.target.value)}>
+            <SelectField label="Account" hideLabel value={accountId} onChange={(e) => setAccountId(e.target.value)}>
               {accounts.map((a) => (
                 <option key={a.id} value={a.id}>
                   {a.institution}
@@ -125,7 +125,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
                 </option>
               ))}
             </SelectField>
-            <Link href="/accounts" className="mt-2 inline-block text-[14px] text-violet">
+            <Link href="/accounts" className="mt-2 inline-block text-[14px] text-brand">
               Add another bank
             </Link>
           </Step>
@@ -162,7 +162,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
                   }}
                   className={cn(
                     "flex w-full flex-col items-center gap-3 rounded-2xl border border-dashed px-6 py-10 text-center transition-colors",
-                    dragging ? "border-violet bg-violet-wash" : "border-ash/70 bg-white hover:border-violet"
+                    dragging ? "border-brand bg-brand-wash" : "border-pebble/70 bg-raised hover:border-brand"
                   )}
                 >
                   <span className="flex size-11 items-center justify-center rounded-full bg-cloud">
@@ -206,7 +206,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
                     }}
                     rows={10}
                     placeholder={ALERT_EXAMPLE}
-                    className="mt-1.5 block w-full rounded-2xl border border-hairline bg-white px-4 py-3 font-mono text-[13px] leading-relaxed text-ink placeholder:text-ash focus:border-violet focus:ring-2 focus:ring-violet/20 focus:outline-none"
+                    className="mt-1.5 block w-full rounded-[12px] border border-pebble/45 bg-raised px-4 py-3 font-mono text-[13px] leading-relaxed text-ink placeholder:text-pebble focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
                   />
                 </label>
                 {alerts && alerts.unparsed.length > 0 && (
@@ -244,7 +244,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
                     </p>
                   </details>
                 )}
-                <ul className="mt-5 divide-y divide-hairline rounded-2xl bg-white px-4">
+                <ul className="mt-5 divide-y divide-hairline rounded-2xl bg-raised px-4">
                   {lines.slice(0, 8).map((l, i) => (
                     <li key={i} className="flex items-center gap-3 py-3">
                       <span className="w-20 shrink-0 text-[13px] text-ink-faint tabular-nums">{short(l.date)}</span>
@@ -264,7 +264,7 @@ export function ImportView({ workspace }: { workspace: Workspace }) {
           <div className="mt-auto space-y-4 pt-6">
             {result && <Notice tone={result.tone}>{result.text}</Notice>}
             {result?.tone === "success" && (
-              <div className="flex flex-wrap gap-4 text-[15px] font-medium text-violet">
+              <div className="flex flex-wrap gap-4 text-[15px] font-medium text-brand">
                 <Link href="/inflow" className="inline-flex items-center gap-1">
                   See True Inflow <ArrowRight className="size-4" />
                 </Link>
@@ -290,7 +290,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   return (
     <div>
       <p className="flex items-center gap-3 text-[18px] font-bold tracking-[-0.01em]">
-        <span className="flex size-7 items-center justify-center rounded-full bg-ink text-[13px] text-white">{n}</span>
+        <span className="flex size-7 items-center justify-center rounded-full bg-ink text-[13px] text-canvas">{n}</span>
         {title}
       </p>
       <div className="mt-4">{children}</div>

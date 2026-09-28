@@ -17,7 +17,21 @@ function compute() {
   const example = [...pairs].sort((a, b) => b.line.amount - a.line.amount)[0];
   const accountName = (id: string) => ws.accounts.find((a) => a.id === id)?.institution ?? "";
 
+  const spans = ([1, 2, 3, 5] as const).map((years) => {
+    const sum = summarize(analysis.credits, ws.accounts, { kind: "trailing", years }, earliest, ws.asOf);
+    return {
+      years,
+      total: sum.total,
+      gross: sum.gross,
+      ownMoves: sum.excluded.self_transfer.amount + sum.excluded.unlinked_own_account.amount,
+      savings: sum.excluded.savings_return.amount,
+      bounced: sum.excluded.reversal.amount + sum.excluded.refund.amount + sum.excluded.loan.amount,
+      transfers: sum.excluded.self_transfer.count + sum.excluded.unlinked_own_account.count,
+    };
+  });
+
   return {
+    spans,
     accounts: ws.accounts,
     total: year.total,
     gross: year.gross,

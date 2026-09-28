@@ -18,15 +18,15 @@ import type { InflowBucket } from "@/lib/inflow/aggregate";
 import { INFLOW_SOURCES, type InflowSource } from "@/lib/inflow/types";
 import { formatNaira, formatNairaAxis, formatPercent } from "@/lib/money";
 
+import { useThemeColors } from "@/components/theme/useThemeColors";
+
 import { sourceLabel } from "./meta";
 
 // Chart roles, drawn from the light system tokens.
-const SURFACE = "#f6f6f6";
-const VIOLET = "#594ff4";
-const CONTEXT = "#d4d4d8";
-const PREVIOUS = "#a3a3a3";
-const GRID = "#e7e7e7";
-const TICK = { fill: "#6f6f6f", fontSize: 13, fontFamily: "var(--font-inter)" };
+// Tooltip swatches are HTML, so they can use the theme variables directly.
+const VIOLET = "var(--brand)";
+const CONTEXT = "var(--context)";
+const PREVIOUS = "var(--ink-faint)";
 
 type Row = InflowBucket & { focus: number; rest: number };
 type ShapeProps = React.ComponentProps<typeof Rectangle> & { payload?: Row };
@@ -42,6 +42,10 @@ export function InflowBars({
   focus: InflowSource | null;
   hasPrevious: boolean;
 }) {
+  const c = useThemeColors();
+  const SURFACE = c.cloud;
+  const GRID = c.hairline;
+  const TICK = { fill: c["ink-faint"], fontSize: 13 };
   const rows: Row[] = data.map((bucket) => {
     const focused = focus ? bucket[focus] : bucket.total;
     return { ...bucket, focus: focused, rest: bucket.total - focused };
@@ -76,7 +80,7 @@ export function InflowBars({
           <BarChart data={rows} barCategoryGap={rows.length > 16 ? "16%" : "26%"} maxBarSize={56} margin={{ top: 8, right: 4 }}>
             {axes}
             <Tooltip
-              cursor={{ fill: "rgba(31,31,31,0.04)" }}
+              cursor={{ fill: c.ink, fillOpacity: 0.05 }}
               content={(props) => <BarTooltip {...props} focus={focus} />}
             />
             {(["focus", "rest"] as const).map((key) => (
@@ -84,10 +88,11 @@ export function InflowBars({
                 key={key}
                 dataKey={key}
                 stackId="inflow"
-                fill={key === "focus" ? VIOLET : CONTEXT}
+                fill={key === "focus" ? c.brand : c.context}
                 stroke={SURFACE}
                 strokeWidth={2}
-                isAnimationActive={false}
+                animationDuration={700}
+                animationEasing="ease-out"
                 shape={(props: ShapeProps) => {
                   const row = props.payload;
                   const isTop = key === "rest" ? (row?.rest ?? 0) > 0 : (row?.rest ?? 0) === 0;
@@ -99,29 +104,31 @@ export function InflowBars({
         ) : (
           <AreaChart data={rows} margin={{ top: 8, right: 16 }}>
             {axes}
-            <Tooltip cursor={{ stroke: "#b0b0b0" }} content={(props) => <RunningTooltip {...props} />} />
+            <Tooltip cursor={{ stroke: c["ink-faint"] }} content={(props) => <RunningTooltip {...props} />} />
             {hasPrevious && (
               <Area
                 type="monotone"
                 dataKey="previousCumulative"
-                stroke={PREVIOUS}
+                stroke={c["ink-faint"]}
                 strokeWidth={2}
                 fill="transparent"
                 dot={false}
-                activeDot={{ r: 4, fill: PREVIOUS, stroke: SURFACE, strokeWidth: 2 }}
-                isAnimationActive={false}
+                activeDot={{ r: 4, fill: c["ink-faint"], stroke: SURFACE, strokeWidth: 2 }}
+                animationDuration={700}
+                animationEasing="ease-out"
               />
             )}
             <Area
               type="monotone"
               dataKey="cumulative"
-              stroke={VIOLET}
+              stroke={c.brand}
               strokeWidth={2.5}
-              fill={VIOLET}
+              fill={c.brand}
               fillOpacity={0.07}
               dot={false}
-              activeDot={{ r: 5, fill: VIOLET, stroke: SURFACE, strokeWidth: 2 }}
-              isAnimationActive={false}
+              activeDot={{ r: 5, fill: c.brand, stroke: SURFACE, strokeWidth: 2 }}
+              animationDuration={700}
+                animationEasing="ease-out"
             />
           </AreaChart>
         )}
@@ -132,7 +139,7 @@ export function InflowBars({
 
 function Shell({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="min-w-[240px] rounded-2xl border border-hairline bg-white p-4 shadow-float">
+    <div className="min-w-[240px] rounded-2xl border border-hairline bg-raised p-4 shadow-float">
       <p className="text-[12px] font-medium tracking-[0.075em] text-ink-faint uppercase">{title}</p>
       <div className="mt-3 space-y-2">{children}</div>
     </div>

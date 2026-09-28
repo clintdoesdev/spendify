@@ -1,53 +1,73 @@
-# Spendify design system (light)
+# Spendify design system
 
-The whole app uses this system. Reusable pieces live in `components/ui/kit.tsx` (Container, Card,
-PageHeading, Segmented, PillButton, TextField, SelectField, Notice, EmptyState, BankAvatar, …).
+Forest Ink and Lime Voltage, adapted from the Wise reference (`DESIGN_3.md`): a confident, slightly
+loud voice. Heavy display type does the shouting, Forest Ink carries the weight, and a single electric
+lime marks the next action. The whole app and the landing page use it, in a light and a dark theme.
 
-It is built from three references. **Shares** is the base; the other two contribute specific pieces:
+## Colour
 
-| From | What we took |
-|---|---|
-| **Shares** (base) | Porcelain canvas, one Signal Violet accent for actions and active states only, pill buttons and tabs, 36px Cloud cards with no shadows, uppercase eyebrows at 0.075em tracking, dark Inkstone closing band |
-| **Wise** | Heavy display numerals for the headline amount, segmented pill control, inverted dark panel for emphasis, filled CTA paired with an underlined text link |
-| **Clearbit** | Lavender wash for soft highlight zones, data-record rows with a muted label on the left and an ink value on the right, colour allowed only in bank marks |
+Semantic tokens are CSS variables in `app/globals.css` that swap with the theme. Use them as normal
+Tailwind utilities (`bg-cloud`, `text-ink`, `bg-brand/25`). Don't use `dark:` for these.
 
-## Tokens
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `canvas` | `#ffffff` | `#0b1008` | Page background |
+| `cloud` | `#f0f2ed` | `#131b0f` | Cards and panels |
+| `raised` | `#ffffff` | `#1a2415` | Inputs, inner panels, tooltips, floating cards |
+| `sunken` | `#e5e9e1` | `#212c1b` | Meter tracks, skeletons |
+| `hairline` / `pebble` | `#e1e5dd` / `#868685` | `#26331f` / `#5b6655` | Dividers / input borders, neutral series |
+| `ink` / `ink-soft` / `ink-faint` | Obsidian / Charcoal / Slate | light greys | Headings and figures / body / labels |
+| `brand` | Forest `#163300` | Lime `#9fe870` | Text accents, links, the main chart series, progress |
+| `brand-wash` | Linen Mist `#e2f6d5` | `#1c2d12` | Badges, soft highlights |
+| `context` | `#d3d9cd` | `#3a4834` | "Everything else" in emphasis charts |
+| `gain`, `loss`, `warn` (+ `-wash`) | | | Status only, always with an icon or sign |
 
-Defined in `app/globals.css` under `@theme`.
+Fixed brand colours look the same in both themes:
 
 | Token | Value | Use |
 |---|---|---|
-| `ink` | `#1f1f1f` | Text, headings, dark panels, footer |
-| `ink-soft` | `#5d5d5d` | Secondary text |
-| `ink-faint` | `#6f6f6f` | Labels and helper text (Smoke darkened to pass 4.5:1) |
-| `ash` | `#b0b0b0` | Text on dark surfaces, dashed/inactive borders |
-| `hairline` | `#e7e7e7` | Dividers, borders, chart grid |
-| `cloud` | `#f6f6f6` | Card surface |
-| `porcelain` | `#ffffff` | Page canvas |
-| `violet` / `violet-deep` | `#594ff4` / `#4a40e0` | The only accent: primary buttons, active tabs, focused data (hover) |
-| `violet-wash` | `#f5f3ff` | Soft callouts and tags |
-| `gain` / `gain-wash` | `#0b7a61` / `#e3f5ef` | Positive change, money in |
-| `warn` / `warn-wash` | `#8a5a00` / `#fdf3dc` | Budget running ahead of pace, soft warnings |
-| `loss` / `loss-wash` | `#cb272f` / `#fbe9ea` | Negative change |
+| `lime` / `lime-deep` | `#9fe870` / `#8ad65b` | Primary buttons, active tabs, the one highlight per section. Never text on a light background. |
+| `forest` / `forest-deep` | `#163300` / `#0f2400` | Inverted sections and panels (True Inflow breakdown, security, footer, login brand panel) |
+| `forest-soft` | `#b8cbb0` | Muted text on forest |
+
+Every text pair passes WCAG AA (4.5:1 or better) in both themes.
+
+## When to go dark
+
+- **Theme:** Light, Dark or Auto (follows the OS), set from the header toggle or the account menu. It's saved in `localStorage` and applied before first paint by `components/theme/themeScript.ts`, so the page never flashes the wrong theme.
+- **Always-forest surfaces:** some moments stay forest in both themes on purpose: the landing product stage and security section, the login brand panel, the True Inflow "How we got there" panel and proof-of-income panel, and the Overview True Inflow teaser. On forest, headlines and key numbers are lime.
+- **The lime closing band** on the landing page is lime in both themes, with forest type.
 
 ## Type
 
-- **Inter Variable**, self-hosted via `@fontsource-variable/inter`, so builds don't depend on Google Fonts. Features `cv11` (single-storey a) and `ss01` (open digits) give it the geometric Aeonik feel. Use `tabular-nums` on every figure.
-- Body 500 at 15–17px. Headings 700 at 22–40px, with tracking −0.01 to −0.02em.
-- The headline figure uses weight 900 at up to 104px, tracking −0.045em, line-height 0.92.
-- Eyebrows are 13px, 500 weight, uppercase, tracking 0.075em.
+- **Face:** Inter Variable, self-hosted, with `cv11` and `ss01` switched on.
+- **Display** (Wise Sans stand-in): weight 900, tracking −0.04 to −0.055em, line-height 0.84–0.95. Use it for heroes, page titles and big figures. Hero moments are ALL CAPS.
+- **Headings:** weight 700, tracking −0.02em. Body is 500 at 15–18px.
+- **Badges:** 12px, weight 600, uppercase, tracking 0.06em, set on `brand-wash` (or `white/10` on forest).
 
-## Shape and depth
+## Shape
 
-- Cards are 36px radius (28px on mobile) with 32px padding (24px on mobile). Inner rows and accordions are 16px.
-- Buttons, tags, tabs and chips are full pills. Primary buttons are violet-filled; ghost buttons have a violet outline.
-- Depth comes from surface tint (white page → Cloud card → white inner panel). The only shadow is `shadow-float`, used on floating tooltips.
-- No gradients, no decorative motion, and no chart animation.
+- **Pills:** buttons, tabs, badges and navigation.
+- **Cards:** 24px radius on mobile, 28px on desktop. Inner rows and inputs are 12–20px.
+- **Buttons:** the primary is a lime fill with forest text; the secondary is a forest outline or an underlined text link. Never put two filled buttons side by side.
+- **Depth:** mostly tint and hairlines. `shadow-float` is used only for things that float: product mockups, tooltips and menus.
+
+## Motion
+
+All motion respects `prefers-reduced-motion`: it collapses to instant, and everything stays visible.
+
+| What | How |
+|---|---|
+| Page change | `PageTransition` rises each page in (0.45s) |
+| Scroll reveal | Add `data-reveal` (`="fade"` or `="scale"`); stagger with `style={{ "--delay": "120ms" }}`. `ClientEffects` shows elements as they enter the viewport |
+| Growing bars | `.grow-y` / `.grow-x` inside a revealed element, with `--i` for per-bar stagger |
+| Numbers | `<CountUp value format>` counts up when visible, and again when the value changes |
+| Hero headline | Words rise in with a stagger; `.mark-lime` swipes a lime block behind one word |
+| Tabs | `Segmented` slides its lime indicator between options |
+| Ambient | Floating cards (`animate-float`), the bank marquee, the coin moving between banks in "Transfer matched" |
 
 ## Charts
 
-- **One accent.** Show a single series in violet. To compare parts, use emphasis: the selected part in violet, everything else in `#d4d4d8`. Don't give each category its own hue.
-- **Comparison lines.** The previous period is a gray `#a3a3a3` line next to the violet one.
-- **Chrome.** Grid lines are solid hairlines. Axis labels are 13px `ink-faint` and formatted with `formatNairaAxis`.
-- **Bars.** A 2px surface-coloured gap between stacked segments. Only the top of each stack is rounded, at 6px.
-- **Tooltips.** Every chart has one: a white card with the hairline border and `shadow-float`.
+- **Colours:** one accent. The series is `brand`, with `context` for "everything else" when one source is highlighted. A comparison series is `pebble` or `ink-faint`.
+- **SVG attributes:** these need real colours, so read them with `useThemeColors()`. HTML tooltips can use `var(--brand)` directly.
+- **Styling:** grid lines are solid `hairline`, axis labels are 13px `ink-faint`, and every chart has a tooltip.

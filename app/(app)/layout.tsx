@@ -1,3 +1,4 @@
+import { PageTransition } from "@/components/motion/PageTransition";
 import { AppHeader } from "@/components/shell/AppHeader";
 import { getWorkspace } from "@/lib/data/workspace";
 
@@ -9,7 +10,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader viewer={workspace.viewer} mode={workspace.mode} canSignUp={workspace.canSignUp} />
-      <main className="flex-1 pb-20">{children}</main>
+      <main className="flex-1 pb-24">
+        <PageTransition>{children}</PageTransition>
+      </main>
     </div>
   );
 }

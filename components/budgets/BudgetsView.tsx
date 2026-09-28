@@ -91,7 +91,7 @@ export function BudgetsView({ workspace }: { workspace: Workspace }) {
           )
         }
         action={
-          <SelectField label="Month" className="w-full sm:w-56 [&>span]:sr-only" value={month} onChange={(e) => setMonth(e.target.value)}>
+          <SelectField label="Month" hideLabel className="w-full sm:w-56" value={month} onChange={(e) => setMonth(e.target.value)}>
             {months.map((m) => (
               <option key={m} value={m}>
                 {monthLabel(m, true)}
@@ -140,7 +140,7 @@ export function BudgetsView({ workspace }: { workspace: Workspace }) {
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[28px] border border-dashed border-ash/70 text-[16px] text-ink-soft transition-colors hover:border-violet hover:text-violet sm:rounded-[36px]"
+            className="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-[28px] border border-dashed border-pebble/70 text-[16px] text-ink-soft transition-colors hover:border-brand hover:text-brand sm:rounded-[36px]"
           >
             <span className="flex size-11 items-center justify-center rounded-full bg-cloud">
               <Plus className="size-5" />
@@ -201,7 +201,7 @@ function BudgetCard({
   const left = budget.monthlyLimit - spent;
 
   return (
-    <Card as="div" className="flex flex-col">
+    <Card as="div" className="flex flex-col" interactive data-reveal>
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[18px] font-bold tracking-[-0.01em] text-ink">{budget.category}</p>
@@ -253,11 +253,11 @@ function BudgetCard({
 /** Spend against limit, with a tick showing where you'd be if spending evenly. */
 function Meter({ spent, limit, pace, large }: { spent: number; limit: number; pace: number; large?: boolean }) {
   const ratio = limit > 0 ? spent / limit : 0;
-  const tone = ratio > 1 ? "bg-loss" : ratio > pace + 0.1 && ratio > 0.8 ? "bg-warn" : "bg-violet";
+  const tone = ratio > 1 ? "bg-loss" : ratio > pace + 0.1 && ratio > 0.8 ? "bg-warn" : "bg-brand";
   return (
     <div>
       <div className={cn("relative w-full overflow-hidden rounded-full bg-hairline", large ? "h-3" : "h-2")}>
-        <div className={cn("h-full rounded-full", tone)} style={{ width: `${Math.min(ratio, 1) * 100}%` }} />
+        <div className={cn("grow-x h-full rounded-full transition-[width,background-color] duration-700 ease-out", tone)} style={{ width: `${Math.min(ratio, 1) * 100}%` }} />
         {pace < 1 && <div className="absolute inset-y-0 w-0.5 bg-ink/40" style={{ left: `${pace * 100}%` }} title="Even pace" />}
       </div>
       <div className="mt-2 flex justify-between text-[13px] text-ink-faint tabular-nums">
@@ -335,7 +335,7 @@ function IconButton({ label, children, ...rest }: React.ButtonHTMLAttributes<HTM
     <button
       type="button"
       aria-label={label}
-      className="flex size-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white hover:text-ink disabled:opacity-40"
+      className="flex size-9 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink disabled:opacity-40"
       {...rest}
     >
       {children}

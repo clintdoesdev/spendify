@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Landmark, LogOut, Upload, UserPlus, X } from "lucide-react";
 
 import { signOutAction } from "@/app/actions";
+import { ThemeButton, ThemeSegmented } from "@/components/theme/ThemeToggle";
 import { Container } from "@/components/ui/kit";
 import type { Viewer } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
@@ -23,19 +24,19 @@ export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "
   const isActive = (href: string) => pathname.startsWith(href);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-hairline bg-white/90 backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-hairline bg-canvas/85 backdrop-blur-xl">
       {mode === "demo" && (
-        <div className="bg-violet-wash">
+        <div className="bg-brand-wash">
           <Container className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 py-2 text-center text-[13px] text-ink-soft">
             <span className="flex items-center gap-2">
-              <span className="size-1.5 shrink-0 rounded-full bg-violet" />
+              <span className="size-1.5 shrink-0 rounded-full bg-brand" />
               {canSignUp
                 ? "You're exploring sample data. Nothing you change is saved."
                 : "Demo mode: sample statements, nothing is saved. Set DATABASE_URL to use your own."}
             </span>
             {canSignUp && (
               <span className="flex items-center gap-3">
-                <Link href="/login?mode=signup" className="font-medium text-violet underline-offset-4 hover:underline">
+                <Link href="/login?mode=signup" className="font-medium text-brand underline-offset-4 hover:underline">
                   Create your account
                 </Link>
                 <a href="/demo/exit" className="text-ink-soft underline-offset-4 hover:underline">
@@ -48,10 +49,8 @@ export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "
       )}
       <Container className="flex h-[68px] items-center justify-between gap-4">
         <Link href="/overview" className="flex items-center gap-2.5" aria-label="Spendify overview">
-          <span className="flex size-9 items-center justify-center rounded-[10px] bg-violet text-[17px] font-bold text-white">
-            S
-          </span>
-          <span className="text-[19px] font-bold tracking-[-0.01em] text-ink">spendify</span>
+          <LogoMark />
+          <span className="text-[20px] font-black tracking-[-0.04em] text-ink">spendify</span>
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-1 lg:flex">
@@ -61,8 +60,8 @@ export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
               className={cn(
-                "rounded-full px-4 py-2 text-[15px] transition-colors",
-                isActive(item.href) ? "bg-cloud text-ink" : "text-ink-soft hover:text-ink"
+                "rounded-full px-4 py-2 text-[15px] font-semibold transition-all duration-300",
+                isActive(item.href) ? "bg-ink text-canvas" : "text-ink-soft hover:bg-cloud hover:text-ink"
               )}
             >
               {item.label}
@@ -74,13 +73,14 @@ export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "
           <Link
             href="/import"
             className={cn(
-              "inline-flex h-10 items-center gap-2 rounded-full px-4 text-[15px] font-medium transition-colors sm:px-5",
-              pathname.startsWith("/import") ? "bg-violet-deep text-white" : "bg-violet text-white hover:bg-violet-deep"
+              "group inline-flex h-10 items-center gap-2 rounded-full px-4 text-[15px] font-semibold transition-colors sm:px-5",
+              pathname.startsWith("/import") ? "bg-lime-deep text-forest" : "bg-lime text-forest hover:bg-lime-deep"
             )}
           >
-            <Upload className="size-4" />
+            <Upload className="size-4 transition-transform group-hover:-translate-y-0.5" />
             <span className="hidden sm:inline">Import</span>
           </Link>
+          <ThemeButton className="hidden sm:flex" />
           <AccountMenu viewer={viewer} mode={mode} canSignUp={canSignUp} />
         </div>
       </Container>
@@ -93,8 +93,8 @@ export function AppHeader({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "
               href={item.href}
               aria-current={isActive(item.href) ? "page" : undefined}
               className={cn(
-                "shrink-0 rounded-full px-3.5 py-1.5 text-[14px] whitespace-nowrap",
-                isActive(item.href) ? "bg-cloud text-ink" : "text-ink-soft"
+                "shrink-0 rounded-full px-3.5 py-1.5 text-[14px] font-semibold whitespace-nowrap transition-colors",
+                isActive(item.href) ? "bg-ink text-canvas" : "text-ink-soft"
               )}
             >
               {item.label}
@@ -132,16 +132,19 @@ function AccountMenu({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "demo"
         aria-haspopup="menu"
         aria-expanded={open}
         onClick={() => setOpen((o) => !o)}
-        className="flex size-10 items-center justify-center rounded-full bg-cloud text-[14px] font-semibold text-ink transition-colors hover:bg-hairline focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:outline-none"
+        className="flex size-10 items-center justify-center rounded-full bg-cloud text-[14px] font-semibold text-ink transition-colors hover:bg-hairline focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none"
       >
         {viewer.initials}
       </button>
       {open && (
         <div
           role="menu"
-          className="absolute top-12 right-0 w-64 rounded-2xl border border-hairline bg-white p-2 shadow-float"
+          className="absolute top-12 right-0 w-72 origin-top-right animate-pop rounded-2xl border border-hairline bg-raised p-2 shadow-float [animation-duration:0.25s]"
         >
           <p className="truncate px-3 py-2 text-[14px] text-ink-faint">{viewer.email}</p>
+          <div className="px-1 pb-2">
+            <ThemeSegmented />
+          </div>
           <Link
             href="/accounts"
             role="menuitem"
@@ -178,5 +181,19 @@ function AccountMenu({ viewer, mode, canSignUp }: { viewer: Viewer; mode: "demo"
         </div>
       )}
     </div>
+  );
+}
+
+export function LogoMark({ size = 36 }: { size?: number }) {
+  return (
+    <span
+      aria-hidden
+      className="relative flex items-center justify-center overflow-hidden rounded-[11px] bg-lime text-forest"
+      style={{ width: size, height: size }}
+    >
+      <svg viewBox="0 0 24 24" className="size-[62%]" fill="none">
+        <path d="M17.5 6.5c-1.2-1.3-3-2-5.2-2-3.2 0-5.3 1.6-5.3 3.9 0 5.3 10.9 2.7 10.9 7.7 0 2.4-2.3 4-5.6 4-2.5 0-4.6-.9-5.9-2.6" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    </span>
   );
 }

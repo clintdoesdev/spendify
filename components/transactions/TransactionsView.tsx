@@ -103,7 +103,7 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
           title="No transactions yet"
           body="Import a CSV statement or paste bank alerts to see them here."
           action={
-            <Link href="/import" className="inline-flex h-11 items-center rounded-full bg-violet px-6 text-[15px] font-medium text-white">
+            <Link href="/import" className="inline-flex h-11 items-center rounded-full bg-lime px-6 text-[15px] font-medium text-forest">
               Import a statement
             </Link>
           }
@@ -133,10 +133,10 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
             value={query}
             onChange={(e) => reset(() => setQuery(e.target.value))}
             placeholder="Search name, description or amount"
-            className="block h-12 w-full rounded-2xl border border-hairline bg-white pr-4 pl-11 text-[16px] text-ink placeholder:text-ash focus:border-violet focus:ring-2 focus:ring-violet/20 focus:outline-none"
+            className="block h-12 w-full rounded-[12px] border border-pebble/45 bg-raised pr-4 pl-11 text-[16px] text-ink transition-colors placeholder:text-pebble hover:border-pebble focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
           />
         </label>
-        <SelectField label="Bank" className="[&>span]:sr-only" value={account} onChange={(e) => reset(() => setAccount(e.target.value))}>
+        <SelectField label="Bank" hideLabel value={account} onChange={(e) => reset(() => setAccount(e.target.value))}>
           <option value="all">All banks</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
@@ -147,7 +147,7 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
         </SelectField>
         <SelectField
           label="Direction"
-          className="[&>span]:sr-only"
+          hideLabel
           value={direction}
           onChange={(e) => reset(() => setDirection(e.target.value as Direction))}
         >
@@ -156,7 +156,7 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
           <option value="out">Money out</option>
           <option value="moved">Between your banks</option>
         </SelectField>
-        <SelectField label="Category" className="[&>span]:sr-only" value={category} onChange={(e) => reset(() => setCategory(e.target.value))}>
+        <SelectField label="Category" hideLabel value={category} onChange={(e) => reset(() => setCategory(e.target.value))}>
           <option value="all">All categories</option>
           <optgroup label="Income">
             {Object.values(sourceLabel).map((label) => (
@@ -173,7 +173,7 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
             ))}
           </optgroup>
         </SelectField>
-        <SelectField label="Month" className="[&>span]:sr-only" value={month} onChange={(e) => reset(() => setMonth(e.target.value))}>
+        <SelectField label="Month" hideLabel value={month} onChange={(e) => reset(() => setMonth(e.target.value))}>
           <option value="all">All months</option>
           {months.map((m) => (
             <option key={m} value={m}>
@@ -212,7 +212,7 @@ export function TransactionsView({ workspace }: { workspace: Workspace }) {
                   <span
                     className={cn(
                       "hidden shrink-0 rounded-full px-3 py-1 text-[13px] md:inline",
-                      kind === "moved" ? "bg-violet-wash text-violet" : "bg-white text-ink-soft"
+                      kind === "moved" ? "bg-brand-wash text-brand" : "bg-raised text-ink-soft"
                     )}
                   >
                     {tag}

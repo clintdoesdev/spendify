@@ -112,12 +112,12 @@ export function GoalsView({ workspace }: { workspace: Workspace }) {
       </div>
 
       {savedInApps > 0 && (
-        <section className="mt-14 rounded-[28px] bg-ink p-6 text-white sm:rounded-[36px] sm:p-10">
-          <Eyebrow className="text-ash">From your statements</Eyebrow>
-          <p className="mt-3 max-w-2xl text-[24px] leading-snug font-bold tracking-[-0.01em] sm:text-[30px]">
+        <section className="mt-14 rounded-[28px] bg-forest p-6 text-white sm:rounded-[36px] sm:p-10">
+          <Eyebrow onForest>From your statements</Eyebrow>
+          <p className="mt-4 max-w-2xl text-[28px] leading-[1.02] font-black tracking-[-0.035em] text-lime sm:text-[40px]">
             You moved {formatNairaCompact(savedInApps)} into savings apps and ajo in the last 12 months.
           </p>
-          <p className="mt-3 max-w-2xl text-[16px] text-ash">
+          <p className="mt-3 max-w-2xl text-[16px] text-forest-soft">
             That money isn&apos;t counted as spending, and when it comes back it isn&apos;t counted as income either.
           </p>
         </section>
@@ -161,7 +161,7 @@ function GoalCard({
   const parsed = Number(amount.replace(/[,₦\s]/g, ""));
 
   return (
-    <Card as="div" className="flex flex-col">
+    <Card as="div" className="flex flex-col" interactive data-reveal>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[18px] font-bold tracking-[-0.01em]">{goal.name}</p>
@@ -174,7 +174,7 @@ function GoalCard({
           aria-label={`Delete ${goal.name}`}
           onClick={onDelete}
           disabled={disabled}
-          className="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-soft hover:bg-white hover:text-ink disabled:opacity-40"
+          className="flex size-9 shrink-0 items-center justify-center rounded-full text-ink-soft hover:bg-raised hover:text-ink disabled:opacity-40"
         >
           <Trash2 className="size-4" />
         </button>
@@ -185,7 +185,7 @@ function GoalCard({
         <p className="text-[15px] font-semibold text-ink-soft tabular-nums">{formatPercent(Math.min(ratio, 1))}</p>
       </div>
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-hairline">
-        <div className={cn("h-full rounded-full", done ? "bg-gain" : "bg-violet")} style={{ width: `${Math.min(ratio, 1) * 100}%` }} />
+        <div className={cn("grow-x h-full rounded-full transition-[width] duration-700 ease-out", done ? "bg-gain" : "bg-brand")} style={{ width: `${Math.min(ratio, 1) * 100}%` }} />
       </div>
 
       <p className={cn("mt-3 text-[14px]", done ? "text-gain" : overdue ? "text-loss" : "text-ink-soft")}>
@@ -215,7 +215,7 @@ function GoalCard({
             placeholder="₦ amount"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="block h-11 w-full rounded-full border border-hairline bg-white px-4 text-[15px] placeholder:text-ash focus:border-violet focus:ring-2 focus:ring-violet/20 focus:outline-none"
+            className="block h-11 w-full rounded-full border border-pebble/45 bg-raised px-4 text-[15px] transition-colors hover:border-pebble placeholder:text-pebble focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none"
           />
         </label>
         <PillButton type="submit" className="h-11 px-5" disabled={!parsed || disabled}>

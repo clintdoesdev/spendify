@@ -19,6 +19,7 @@ import {
   Segmented,
 } from "@/components/ui/kit";
 import type { Workspace } from "@/lib/data/types";
+import { CountUp } from "@/components/motion/CountUp";
 import { downloadCsv } from "@/lib/export";
 import { inflationByYear } from "@/lib/finance/inflation";
 import { summarize, yearRows } from "@/lib/inflow/aggregate";
@@ -30,7 +31,7 @@ import {
   type InflowSource,
   type Span,
 } from "@/lib/inflow/types";
-import { formatNaira, formatNairaCompact } from "@/lib/money";
+import { formatNairaCompact } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 import { sourceLabel } from "./meta";
@@ -38,7 +39,7 @@ import { BankList, PayerList, Reconciliation, ReviewList, SourceList, YearList }
 
 const InflowBars = dynamic(() => import("./InflowBars").then((m) => m.InflowBars), {
   ssr: false,
-  loading: () => <div className="h-[300px] rounded-2xl bg-white/60 sm:h-[360px]" />,
+  loading: () => <div className="h-[300px] rounded-2xl skeleton sm:h-[360px]" />,
 });
 
 type SpanId = "1y" | "2y" | "3y" | "5y" | "all";
@@ -65,7 +66,7 @@ export function TrueInflowPage({ workspace }: { workspace: Workspace }) {
           title="No statements yet"
           body="Import a statement or paste your bank alerts, and True Inflow will show what you actually received across every bank."
           action={
-            <Link href="/import" className="inline-flex h-11 items-center rounded-full bg-violet px-6 text-[15px] font-medium text-white">
+            <Link href="/import" className="inline-flex h-11 items-center rounded-full bg-lime px-6 text-[15px] font-medium text-forest">
               Import a statement
             </Link>
           }
@@ -208,7 +209,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
         <Container className="pt-10 pb-12 sm:pt-14 sm:pb-16">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
             <Eyebrow className="flex items-center gap-2 text-ink">
-              <span className="size-2 rounded-full bg-violet" /> True Inflow
+              <span className="size-2 rounded-full bg-brand" /> True Inflow
             </Eyebrow>
             <Segmented
               label="Time span"
@@ -222,7 +223,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
             {span.kind === "year" ? `In ${summary.label}, you actually received` : "You actually received"}
           </p>
           <h1 className="mt-2 text-[clamp(2.75rem,10vw,6.5rem)] leading-[0.92] font-black tracking-[-0.045em] text-ink tabular-nums">
-            {formatNaira(summary.total)}
+            <CountUp value={summary.total} />
           </h1>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
@@ -233,7 +234,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
                 : "Nothing earlier to compare with yet"}
             </p>
             <p className="w-full text-[16px] text-ink-faint sm:w-auto">
-              <span className="mr-4 hidden text-ash sm:inline">·</span>
+              <span className="mr-4 hidden text-pebble sm:inline">·</span>
               {range}
             </p>
           </div>
@@ -249,8 +250,8 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
                   aria-pressed={on}
                   onClick={() => toggleAccount(account.id)}
                   className={cn(
-                    "flex h-10 items-center gap-2 rounded-full border py-1 pr-4 pl-1 text-[15px] transition-colors focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:outline-none",
-                    on ? "border-hairline bg-white text-ink hover:border-ash" : "border-dashed border-ash text-ink-faint"
+                    "flex h-10 items-center gap-2 rounded-full border py-1 pr-4 pl-1 text-[15px] transition-colors focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none",
+                    on ? "border-hairline bg-raised text-ink hover:border-pebble" : "border-dashed border-pebble text-ink-faint"
                   )}
                 >
                   <span className={cn("transition-opacity", !on && "opacity-30 grayscale")}>
@@ -280,7 +281,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
 
         {/* Chart */}
         <Container>
-          <Card>
+          <Card data-reveal>
             <CardTitle
               title="Money received over time"
               subtitle={
@@ -318,13 +319,13 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
             <div className="mt-5 flex flex-wrap gap-5 text-[14px] text-ink-soft">
               {mode === "bars" && focus && (
                 <>
-                  <Key color="bg-violet">{sourceLabel[focus]}</Key>
+                  <Key color="bg-brand">{sourceLabel[focus]}</Key>
                   <Key color="bg-[#d4d4d8]">Everything else</Key>
                 </>
               )}
               {mode === "running" && (
                 <>
-                  <Key color="bg-violet" line>
+                  <Key color="bg-brand" line>
                     {summary.label}
                   </Key>
                   {summary.previousTotal !== null && (
@@ -388,7 +389,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
               </p>
               {saveError && <Notice tone="error" className="mt-5">{saveError}</Notice>}
               {overrideCount > 0 && (
-                <p className="mt-5 inline-flex h-8 items-center rounded-full bg-violet-wash px-3 text-[14px] text-violet">
+                <p className="mt-5 inline-flex h-8 items-center rounded-full bg-brand-wash px-3 text-[14px] text-brand">
                   {overrideCount} payment{overrideCount === 1 ? "" : "s"} changed by you
                 </p>
               )}
@@ -407,14 +408,14 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
 
         {/* Closing panel */}
         <Container>
-          <section className="rounded-[28px] bg-ink px-6 py-12 text-white sm:rounded-[36px] sm:px-12 sm:py-14">
+          <section className="rounded-[28px] bg-forest px-6 py-12 text-white sm:rounded-[36px] sm:px-12 sm:py-14">
             <div className="flex flex-col gap-10 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-xl">
-                <Eyebrow className="text-ash">Proof of income</Eyebrow>
-                <h2 className="mt-3 text-[32px] leading-[1.1] font-bold tracking-[-0.02em] sm:text-[40px]">
+                <Eyebrow onForest>Proof of income</Eyebrow>
+                <h2 className="mt-4 text-[34px] leading-[0.95] font-black tracking-[-0.04em] text-lime sm:text-[52px]">
                   Take your {formatNairaCompact(summary.total)} with you.
                 </h2>
-                <p className="mt-4 text-[17px] leading-relaxed text-ash">
+                <p className="mt-4 text-[17px] leading-relaxed text-forest-soft">
                   Download every counted payment for {range} as a statement for a landlord, lender or
                   embassy.
                 </p>
@@ -423,7 +424,7 @@ function TrueInflow({ workspace }: { workspace: Workspace }) {
                 <Download className="size-4" /> Download statement
               </PillButton>
             </div>
-            <p className="mt-12 border-t border-white/15 pt-6 text-[14px] text-ash">
+            <p className="mt-12 border-t border-white/15 pt-6 text-[14px] text-forest-soft">
               Calculated from {statementLines.length.toLocaleString("en-NG")} statement lines across{" "}
               {bankAccounts.length} account{bankAccounts.length === 1 ? "" : "s"}. Inflation figures are
               illustrative.
@@ -462,8 +463,8 @@ function FocusChip({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "h-9 rounded-full px-4 text-[14px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:outline-none",
-        active ? "bg-violet text-white" : "bg-white text-ink hover:bg-white/60"
+        "h-9 rounded-full px-4 text-[14px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none",
+        active ? "bg-lime text-forest" : "bg-raised text-ink hover:bg-sunken"
       )}
     >
       {children}

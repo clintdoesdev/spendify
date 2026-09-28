@@ -13,13 +13,13 @@ import {
 
 import type { MonthFlow } from "@/lib/finance/analyze";
 import { monthLabel } from "@/lib/finance/analyze";
+import { useThemeColors } from "@/components/theme/useThemeColors";
 import { formatNaira, formatNairaAxis } from "@/lib/money";
 
-const RECEIVED = "#594ff4";
-const SPENT = "#1f1f1f";
-const TICK = { fill: "#6f6f6f", fontSize: 13 };
+const RECEIVED = "var(--brand)";
+const SPENT = "var(--pebble)";
 
-/** Received (violet) next to spent (ink), one pair per month. Clicking a month selects it. */
+/** Received (brand) next to spent (context), one pair per month. Clicking a month selects it. */
 export function FlowChart({
   data,
   selected,
@@ -29,6 +29,9 @@ export function FlowChart({
   selected: string;
   onSelect: (month: string) => void;
 }) {
+  const c = useThemeColors();
+  const TICK = { fill: c["ink-faint"], fontSize: 13 };
+  const spent = c.pebble;
   return (
     <div className="h-[280px] w-full sm:h-[320px]">
       <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={280}>
@@ -43,17 +46,17 @@ export function FlowChart({
             if (Number.isInteger(index) && data[index]) onSelect(data[index].month);
           }}
         >
-          <CartesianGrid stroke="#e7e7e7" vertical={false} />
+          <CartesianGrid stroke={c.hairline} vertical={false} />
           <XAxis dataKey="label" tick={TICK} axisLine={false} tickLine={false} tickMargin={10} interval="preserveStartEnd" minTickGap={12} />
           <YAxis tickFormatter={(v) => formatNairaAxis(Number(v))} tick={TICK} axisLine={false} tickLine={false} width={58} />
-          <Tooltip cursor={{ fill: "rgba(31,31,31,0.04)" }} content={(props) => <FlowTooltip {...props} />} />
+          <Tooltip cursor={{ fill: c.ink, fillOpacity: 0.05 }} content={(props) => <FlowTooltip {...props} />} />
           {(["received", "spent"] as const).map((key) => (
             <Bar
               key={key}
               dataKey={key}
-              fill={key === "received" ? RECEIVED : SPENT}
+              fill={key === "received" ? c.brand : spent}
               radius={[5, 5, 0, 0]}
-              isAnimationActive={false}
+              animationDuration={700}
               cursor="pointer"
               // Fade months other than the selected one.
               shape={(props: { x?: number; y?: number; width?: number; height?: number; payload?: MonthFlow }) => {
@@ -64,7 +67,7 @@ export function FlowChart({
                 return (
                   <path
                     d={`M${x},${y + height} V${y + r} Q${x},${y} ${x + r},${y} H${x + width - r} Q${x + width},${y} ${x + width},${y + r} V${y + height} Z`}
-                    fill={key === "received" ? RECEIVED : SPENT}
+                    fill={key === "received" ? c.brand : spent}
                     opacity={dim ? 0.35 : 1}
                   />
                 );
@@ -82,7 +85,7 @@ function FlowTooltip({ active, payload }: TooltipContentProps) {
   const row = payload[0].payload as MonthFlow;
   const kept = row.received - row.spent;
   return (
-    <div className="min-w-[220px] rounded-2xl border border-hairline bg-white p-4 shadow-float">
+    <div className="min-w-[220px] rounded-2xl border border-hairline bg-raised p-4 shadow-float">
       <p className="text-[12px] font-medium tracking-[0.075em] text-ink-faint uppercase">{monthLabel(row.month, true)}</p>
       <div className="mt-3 space-y-2 text-[14px]">
         <Row color={RECEIVED} label="Received" value={formatNaira(row.received)} />
@@ -108,3 +111,4 @@ function Row({ color, label, value }: { color: string; label: string; value: str
     </div>
   );
 }
+

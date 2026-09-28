@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { ArrowRight, Check, ChevronDown, Link2 } from "lucide-react";
 
+import { CountUp } from "@/components/motion/CountUp";
+import { BankAvatar, Card, CardTitle, Eyebrow, PillButton, Switch } from "@/components/ui/kit";
 import type { InflowSummary, YearRow } from "@/lib/inflow/aggregate";
 import {
   EXCLUSION_REASONS,
@@ -17,7 +19,6 @@ import { formatNaira, formatNairaCompact, formatPercent } from "@/lib/money";
 import { cn } from "@/lib/utils";
 
 import { reasonMeta, sourceLabel } from "./meta";
-import { BankAvatar, Card, CardTitle, Eyebrow, PillButton, Switch } from "@/components/ui/kit";
 
 /** Inverted Inkstone panel: gross credits, minus what was already yours, equals True Inflow. */
 export function Reconciliation({
@@ -32,8 +33,8 @@ export function Reconciliation({
   const reasons = EXCLUSION_REASONS.filter((r) => summary.excluded[r].amount > 0);
 
   return (
-    <section className="flex h-full flex-col rounded-[28px] bg-ink p-6 text-white sm:rounded-[36px] sm:p-8">
-      <Eyebrow className="text-ash">How we got there</Eyebrow>
+    <section className="flex h-full flex-col rounded-[28px] bg-forest p-6 text-white sm:rounded-[36px] sm:p-8">
+      <Eyebrow onForest>How we got there</Eyebrow>
       <p className="mt-3 text-[22px] leading-snug font-bold tracking-[-0.01em] sm:text-[26px]">
         {formatNairaCompact(filtered)} that landed in your accounts was already yours.
       </p>
@@ -56,19 +57,19 @@ export function Reconciliation({
       <div className="mt-auto pt-6">
         <div className="flex items-end justify-between gap-4 border-t border-white/15 pt-5">
           <div>
-            <p className="text-[14px] text-ash">True Inflow</p>
-            <p className="mt-1 text-[30px] leading-none font-extrabold tracking-[-0.025em] tabular-nums sm:text-[36px]">
-              {formatNaira(summary.total)}
+            <p className="text-[14px] text-forest-soft">True Inflow</p>
+            <p className="mt-1 text-[32px] leading-none font-black tracking-[-0.04em] text-lime tabular-nums sm:text-[40px]">
+              <CountUp value={summary.total} />
             </p>
           </div>
-          <p className="text-right text-[14px] text-ash tabular-nums">
+          <p className="text-right text-[14px] text-forest-soft tabular-nums">
             {formatPercent(summary.total / gross)}
             <br />
             of credits
           </p>
         </div>
         <div className="mt-4 flex h-2 w-full gap-[2px] overflow-hidden rounded-full">
-          <div className="h-full rounded-l-full bg-violet" style={{ flexGrow: summary.total }} />
+          <div className="h-full rounded-l-full bg-lime" style={{ flexGrow: summary.total }} />
           <div className="h-full rounded-r-full bg-white/15" style={{ flexGrow: filtered }} />
         </div>
       </div>
@@ -94,7 +95,7 @@ function ReconRow({
   const content = (
     <>
       <span className="flex items-baseline justify-between gap-3 text-[15px]">
-        <span className={cn("min-w-0 truncate", tone === "gross" ? "text-white" : "text-ash")}>
+        <span className={cn("min-w-0 truncate", tone === "gross" ? "text-white" : "text-forest-soft")}>
           {label}
           {count !== undefined && <span className="ml-1.5 text-[13px] text-white/40">{count}×</span>}
         </span>
@@ -105,7 +106,7 @@ function ReconRow({
       </span>
       <span className="mt-2 block h-1 w-full rounded-full bg-white/8">
         <span
-          className={cn("block h-full rounded-full", tone === "gross" ? "bg-white/60" : "bg-white/30")}
+          className={cn("block h-full rounded-full transition-[width] duration-700 ease-out", tone === "gross" ? "bg-white/60" : "bg-white/30")}
           style={{ width: `${Math.max(ratio * 100, 1)}%` }}
         />
       </span>
@@ -138,7 +139,7 @@ export function SourceList({
   const max = Math.max(...INFLOW_SOURCES.map((s) => summary.bySource[s]), 1);
 
   return (
-    <Card className="h-full">
+    <Card className="h-full" data-reveal>
       <CardTitle title="Where it came from" subtitle="Tap a source to trace it through the chart." />
       <ul className="mt-6 space-y-1">
         {INFLOW_SOURCES.map((source) => {
@@ -151,12 +152,12 @@ export function SourceList({
                 aria-pressed={active}
                 onClick={() => onFocus(active ? null : source)}
                 className={cn(
-                  "-mx-3 block w-[calc(100%+1.5rem)] rounded-2xl px-3 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:outline-none",
-                  active ? "bg-white" : "hover:bg-white/70"
+                  "-mx-3 block w-[calc(100%+1.5rem)] rounded-2xl px-3 py-3 text-left transition-colors focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none",
+                  active ? "bg-raised" : "hover:bg-raised/70"
                 )}
               >
                 <span className="flex items-baseline justify-between gap-3">
-                  <span className={cn("text-[16px]", active ? "font-semibold text-violet" : "text-ink")}>
+                  <span className={cn("text-[16px]", active ? "font-semibold text-brand" : "text-ink")}>
                     {sourceLabel[source]}
                   </span>
                   <span className="flex items-baseline gap-3 tabular-nums">
@@ -168,7 +169,7 @@ export function SourceList({
                 </span>
                 <span className="mt-2.5 block h-1.5 w-full rounded-full bg-hairline">
                   <span
-                    className={cn("block h-full rounded-full", active ? "bg-violet" : "bg-ink/80")}
+                    className={cn("block h-full rounded-full transition-[width] duration-700 ease-out", active ? "bg-brand" : "bg-ink/80")}
                     style={{ width: `${(amount / max) * 100}%` }}
                   />
                 </span>
@@ -184,7 +185,7 @@ export function SourceList({
 export function BankList({ summary }: { summary: InflowSummary }) {
   const total = summary.total || 1;
   return (
-    <Card>
+    <Card data-reveal>
       <CardTitle title="Where it landed" subtitle="True Inflow by account" />
       <ul className="mt-6 divide-y divide-hairline">
         {summary.byAccount.map(({ account, amount }) => (
@@ -210,12 +211,12 @@ export function BankList({ summary }: { summary: InflowSummary }) {
 export function PayerList({ summary }: { summary: InflowSummary }) {
   const total = summary.total || 1;
   return (
-    <Card>
+    <Card data-reveal>
       <CardTitle title="Who paid you" subtitle="Top senders this period" />
       <ol className="mt-6 divide-y divide-hairline">
         {summary.topPayers.map((payer, i) => (
           <li key={payer.name} className="flex items-center gap-3 py-3.5 first:pt-0 last:pb-0">
-            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-white text-[14px] font-semibold text-ink tabular-nums">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-raised text-[14px] font-semibold text-ink tabular-nums">
               {i + 1}
             </span>
             <span className="min-w-0 flex-1">
@@ -246,7 +247,7 @@ export function YearList({
 }) {
   const max = Math.max(...rows.map((r) => r.total), 1);
   return (
-    <Card>
+    <Card data-reveal>
       <CardTitle title="Year by year" subtitle="Real growth is after inflation." />
       <div className="mt-6">
         <div className="grid grid-cols-[1fr_auto_auto] gap-x-4 pb-2 text-[12px] font-medium tracking-[0.075em] text-ink-faint uppercase">
@@ -263,13 +264,13 @@ export function YearList({
               aria-pressed={active}
               onClick={() => onSelect(row.year)}
               className={cn(
-                "-mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[1fr_auto_auto] items-center gap-x-4 rounded-2xl px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-violet/40 focus-visible:outline-none",
-                active ? "bg-white" : "hover:bg-white/70"
+                "-mx-3 grid w-[calc(100%+1.5rem)] grid-cols-[1fr_auto_auto] items-center gap-x-4 rounded-2xl px-3 py-2.5 text-left transition-colors focus-visible:ring-2 focus-visible:ring-brand/40 focus-visible:outline-none",
+                active ? "bg-raised" : "hover:bg-raised/70"
               )}
             >
               <span className="min-w-0">
                 <span className="flex items-baseline gap-2">
-                  <span className={cn("text-[16px] font-semibold", active ? "text-violet" : "text-ink")}>
+                  <span className={cn("text-[16px] font-semibold", active ? "text-brand" : "text-ink")}>
                     {row.year}
                   </span>
                   <span className="text-[15px] text-ink tabular-nums">{formatNairaCompact(row.total)}</span>
@@ -277,7 +278,7 @@ export function YearList({
                 </span>
                 <span className="mt-1.5 block h-1 rounded-full bg-hairline">
                   <span
-                    className={cn("block h-full rounded-full", active ? "bg-violet" : "bg-ink/70")}
+                    className={cn("block h-full rounded-full transition-[width] duration-700 ease-out", active ? "bg-brand" : "bg-ink/70")}
                     style={{ width: `${(row.total / max) * 100}%` }}
                   />
                 </span>
@@ -380,8 +381,8 @@ export function ReviewList({
             {expanded && (
               <div className="px-3 pb-3 sm:px-4 sm:pb-4">
                 {reason === "unlinked_own_account" && (
-                  <div className="mb-3 flex flex-col gap-3 rounded-2xl bg-violet-wash p-4 sm:flex-row sm:items-center">
-                    <Link2 className="size-5 shrink-0 text-violet" />
+                  <div className="mb-3 flex flex-col gap-3 rounded-2xl bg-brand-wash p-4 sm:flex-row sm:items-center">
+                    <Link2 className="size-5 shrink-0 text-brand" />
                     <p className="flex-1 text-[15px] text-ink">
                       {unlinkedBanks(items).length > 0 ? (
                         <>
@@ -395,13 +396,13 @@ export function ReviewList({
                     </p>
                     <Link
                       href="/accounts"
-                      className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-violet px-5 text-[15px] font-medium text-violet hover:bg-violet-wash"
+                      className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-brand px-5 text-[15px] font-medium text-brand hover:bg-brand-wash"
                     >
                       Add bank <ArrowRight className="size-4" />
                     </Link>
                   </div>
                 )}
-                <ul className="divide-y divide-hairline rounded-2xl bg-white">
+                <ul className="divide-y divide-hairline rounded-2xl bg-raised">
                   {items.slice(0, limit).map((credit) => {
                     const account = accountById.get(credit.line.accountId);
                     const from = credit.matchedDebit && accountById.get(credit.matchedDebit.accountId);
@@ -447,7 +448,7 @@ export function ReviewList({
                   <button
                     type="button"
                     onClick={() => setLimit((l) => l + PAGE * 3)}
-                    className="mt-3 ml-2 text-[15px] font-medium text-violet underline-offset-4 hover:underline"
+                    className="mt-3 ml-2 text-[15px] font-medium text-brand underline-offset-4 hover:underline"
                   >
                     Show {Math.min(PAGE * 3, items.length - limit)} more of {items.length - limit}
                   </button>
